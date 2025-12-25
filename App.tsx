@@ -45,7 +45,7 @@ const App: React.FC = () => {
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="flex items-center gap-3 opacity-50 grayscale">
                     <div className="w-8 h-8 meebot-gradient rounded-lg flex items-center justify-center">
-                      <span className="text-white font-black text-sm">M</span>
+                      <span className="text-white font-black text-sm">MCB</span>
                     </div>
                     <span className="font-bold text-sm">MeeBot Ecosystem</span>
                   </div>
