@@ -58,10 +58,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [address, chainId]);
 
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
+    // Safety: Ensure message is a string to avoid [object Object]
+    const cleanMessage = typeof message === 'string' ? message : JSON.stringify(message);
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
       ...prev,
-      notifications: [...prev.notifications, { id, type, message, timestamp: Date.now() }]
+      notifications: [...prev.notifications, { id, type, message: cleanMessage, timestamp: Date.now() }]
     }));
     setTimeout(() => removeNotification(id), 6000);
   }, []);
@@ -167,12 +169,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const connector = connectorId || connectors[0];
       
-      // Proactive cleanup for WalletConnect to prevent "Proposal expired"
+      // Proactive cleanup for WalletConnect to prevent "Proposal expired" or stale sessions
       if (connector.id === 'walletConnect') {
         try {
           localStorage.removeItem('walletconnect');
           localStorage.removeItem('WCM_RECENT_WALLET_DATA');
           localStorage.removeItem('wc@2:client:0.3:session');
+          // Clear any potentially lingering session strings
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('wc@2') || key.includes('walletconnect'))) {
+              localStorage.removeItem(key);
+            }
+          }
         } catch (e) {}
       }
 
@@ -180,13 +189,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notify('success', 'เชื่อมต่อ Neural Link สำเร็จ... ยินดีต้อนรับสมาชิก Collective');
     } catch (error: any) {
       console.error("Wallet connection failed", error);
+      
+      // Safely extract error message to prevent [object Object]
+      let msg = '';
+      if (typeof error === 'string') {
+        msg = error.toLowerCase();
+      } else if (error && typeof error.message === 'string') {
+        msg = error.message.toLowerCase();
+      } else {
+        msg = JSON.stringify(error).toLowerCase();
+      }
+
       let errorMessage = 'การเชื่อมต่อถูกรบกวน กรุณาลองใหม่อีกครั้ง';
       
-      const msg = error.message?.toLowerCase() || '';
-      if (msg.includes('rejected') || msg.includes('reject') || msg.includes('cancel')) {
+      if (msg.includes('provider not found') || msg.includes('connector not found')) {
+        errorMessage = 'ไม่พบ Wallet Provider (เช่น MetaMask) ในเครื่องของท่าน กรุณาติดตั้ง Extension หรือเลือกใช้ "WalletConnect" เพื่อสแกน QR Code แทน';
+      } else if (msg.includes('rejected') || msg.includes('reject') || msg.includes('cancel')) {
         errorMessage = 'ท่านได้ปฏิเสธการเชื่อมต่อ (Session Rejected)... กรุณาลองใหม่เมื่อพร้อม';
       } else if (msg.includes('expired')) {
         errorMessage = 'เซสชันการเชื่อมต่อหมดอายุ (Proposal expired) กรุณา Refresh หน้าเว็บและลองใหม่อีกครั้ง';
+      } else if (msg.includes('disconnected')) {
+        errorMessage = 'การเชื่อมต่อขาดหายไปกระทันหัน กรุณาตรวจสอบสัญญาณอินเทอร์เน็ต';
       }
       
       notify('error', errorMessage);
