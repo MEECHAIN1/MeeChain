@@ -2,7 +2,7 @@
 import { createPublicClient, http, fallback } from 'viem';
 import { localhost } from 'viem/chains';
 
-const RPC_URL = process.env.VITE_RPC_URL || "http://127.0.0.1:8545";
+const RPC_URL = process.env.VITE_RPC_URL || "www.meechain.run.place";
 
 // Default chain config for MeeChain
 export const meechain = {
