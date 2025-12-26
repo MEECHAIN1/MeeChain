@@ -16,7 +16,7 @@ export const config = createConfig({
   connectors: [
     injected(),
     walletConnect({
-      projectId: '663c25b58c5d2037993b7b5d5d35f3aa', 
+      projectId: '2e0008e23308df1a8278a35195822b65', 
       metadata,
       showQrModal: true,
       qrModalOptions: {
