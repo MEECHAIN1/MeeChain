@@ -24,6 +24,6 @@ export const client = createPublicClient({
   chain: meechain,
   transport: fallback([
     http(RPC_URL),
-     http("https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6")
+     http()
   ], { rank: false }),
 });
