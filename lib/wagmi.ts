@@ -13,7 +13,7 @@ const metadata = {
 };
 
 export const config = createConfig({
-  chains: [meechain as any],
+  chains: [meechain as any, bsc],
   multiInjectedProviderDiscovery: true,
   connectors: [
     injected(),
@@ -27,6 +27,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [meechain.id]: http(),
+    [meechain.id]: http('https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6'),
+    [bsc.id]: http('https://bnb-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6'),
   },
 });
