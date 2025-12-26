@@ -32,23 +32,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-top-4 duration-700">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter mb-2">
-            ✨ MeeBot <span className="text-sky-400">Dashboard</span>
-          </h1>
-          <p className="text-slate-400 font-medium">Monitoring the ritual flow of the MeeChain ecosystem.</p>
-        </div>
-        
-        {state.account && (
-          <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-            <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-500 animate-spin' : 'bg-emerald-500 animate-pulse'}`}></div>
-            <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
-              {isLoading ? 'Syncing...' : 'System Live'}
-            </span>
-          </div>
-        )}
-      </header>
 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
   <div>
     <h1 className="text-5xl font-black tracking-tighter mb-2">
