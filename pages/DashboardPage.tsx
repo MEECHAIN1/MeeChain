@@ -6,16 +6,16 @@ import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
 
 const DashboardPage: React.FC = () => {
   const { state, events, refreshBalances } = useApp();
-  const isLoading = state.loadingStates.balances;
   const { balance: bscBalance, isLoading: isBscLoading } = useMCBBalance(); // 🟢 ดึงยอดจาก BSC/MeeChain อัตโนมัติ
   const chainId = useChainId();
+  const isLoading = state.loadingStates.balances || isBscLoading;
   
   useEffect(() => {
     if (state.account) {
       refreshBalances();
     }
   }, [state.account, refreshBalances]);
-
+  
   const StatCard = ({ title, value, unit, color, icon }: { title: string, value: string, unit: string, color: string, icon: string }) => (
     <div className="glass p-6 rounded-[2rem] hover:border-white/20 transition-all group relative overflow-hidden">
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-4xl">
@@ -72,14 +72,36 @@ const DashboardPage: React.FC = () => {
               </>
             ) : (
               <>
-                <StatCard title="MCB Balance" value={parseFloat(state.balances.native).toFixed(2)} unit="MCB" color="text-white" icon="💎" />
-                <StatCard title="Staked Tokens" value={parseFloat(state.balances.token).toFixed(2)} unit="sMCB" color="text-sky-400" icon="💰" />
-                <StatCard title="NFT Balance" value={state.balances.nftCount.toString()} unit="ITEMS" color="text-indigo-400" icon="🖼" />
-                <StatCard title="Reward Rate" value={parseFloat(state.balances.rewardRate).toFixed(4)} unit="MCB/SEC" color="text-amber-400" icon="⚡" />
-              </>
-            )}
-          </div>
-
+<StatCard 
+    title="MCB Balance" 
+    value={bscBalance} // ⚡ ใช้ค่าจาก Hook ที่รองรับเหรียญ 5M MCB บน BSC
+    unit="MCB" 
+    color="text-white" 
+    icon="💎" 
+  />
+                
+ <StatCard title="Staked Tokens"
+    value={parseFloat(state.balances.token).toFixed(2)} 
+    unit="sMCB" 
+    color="text-sky-400" 
+    icon="💰" 
+   />
+                
+ <StatCard title="NFT Balance" 
+   value={state.balances.nftCount.toString()} 
+   unit="ITEMS" 
+   color="text-indigo-400" 
+   icon="🖼" 
+   />
+                
+  <StatCard title="Reward Rate" 
+    value={parseFloat(state.balances.rewardRate).toFixed(4)} 
+    unit="MCB/SEC" 
+    color="text-amber-400" 
+    icon="⚡" 
+    /></>
+  )}
+     </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <section className="lg:col-span-2 glass p-10 rounded-[2.5rem] border-white/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -95,7 +117,7 @@ const DashboardPage: React.FC = () => {
                 {isLoading && events.length === 0 ? (
                   <>
                     <SkeletonRow /><SkeletonRow /><SkeletonRow />
-                  </>
+       </>
                 ) : events.length > 0 ? events.map((event) => (
                   <div key={event.id} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 hover:border-white/10 transition-all group">
                     <div className="flex items-center gap-5">
@@ -119,7 +141,14 @@ const DashboardPage: React.FC = () => {
                       <div className="hidden sm:block text-right">
                         <p className="text-[10px] font-mono text-slate-600 truncate max-w-[100px]">{event.hash}</p>
                       </div>
-                      <a href={`https://explorer.meechain.com/tx/${event.hash}`} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+<a 
+    href={chainId === 56 
+    ? `https://bscscan.com/tx/${event.hash}` 
+    : `https://explorer.meechain.com/tx/${event.hash}`} 
+  target="_blank" 
+  rel="noreferrer" 
+  className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+  >
                         ↗
                       </a>
                     </div>
