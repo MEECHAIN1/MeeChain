@@ -16,7 +16,7 @@ export const meechain = {
     symbol: 'MCB',
   },
   rpcUrls: {
-    public: { http: ['https://mcb-chain.bolt.host'] },
+    public: { http: ['https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6'] },
     default: { http: ['https://mcb-chain.bolt.host'] },
   },
 };
