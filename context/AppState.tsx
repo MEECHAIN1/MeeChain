@@ -118,7 +118,6 @@ const refreshBalances = useCallback(async () => {
 
   useEffect(() => {
     if (!address) return;
-
     const unwatchNFT = watchNFTTransfers((from, to, tokenId, hash) => {
       addEvent({
         type: 'Transfer',
