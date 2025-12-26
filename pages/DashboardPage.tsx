@@ -1,4 +1,5 @@
-
+import { useMCBBalance } from '../hooks/useMCBBalance';
+import { useChainId } from 'wagmi';
 import React, { useEffect } from 'react';
 import { useApp } from '../context/AppState';
 import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
@@ -6,7 +7,9 @@ import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
 const DashboardPage: React.FC = () => {
   const { state, events, refreshBalances } = useApp();
   const isLoading = state.loadingStates.balances;
-
+  const { balance: bscBalance, isLoading: isBscLoading } = useMCBBalance(); // 🟢 ดึงยอดจาก BSC/MeeChain อัตโนมัติ
+  const chainId = useChainId();
+  
   useEffect(() => {
     if (state.account) {
       refreshBalances();
