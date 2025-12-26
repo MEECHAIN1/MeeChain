@@ -9,7 +9,7 @@ const SwapPage = () => {
   const { state, notify } = useApp();
   const { chainId, balances, account } = state;
   const [amount, setAmount] = useState('');
-  
+
   // กำหนดเชนปลายทางอัตโนมัติ (ถ้าอยู่ BSC ปลายทางจะเป็น MeeChain และในทางกลับกัน)
   const isBSC = chainId === 56;
   const sourceName = isBSC ? 'BSC Mainnet' : 'MeeChain';
@@ -19,6 +19,7 @@ const SwapPage = () => {
   const fee = 0.005;
   const receiveAmount = amount ? (parseFloat(amount) * (1 - fee)).toFixed(4) : '0.00';
 
+  
   const handleExecute = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       notify('error', 'กรุณาระบุจำนวนพลังงานที่ต้องการสลับ');
@@ -33,7 +34,40 @@ const SwapPage = () => {
     notify('info', `กำลังเริ่มต้นพิธีกรรม Bridge: ส่ง ${amount} MCB จาก ${sourceName} ไปยัง ${targetName}...`);
     // ส่วนนี้คือจุดที่จะใส่ useWriteContract ในขั้นตอนต่อไปครับ
   };
+  
+const { data: hash, writeContract, isPending } = useWriteContract();
+  const contracts = getADRS(chainId);
+  
+  const handleExecute = async () => {
+    if (!amount || parseFloat(amount) <= 0) return;
 
+    try {
+      // 🟢 เรียกฟังก์ชัน 'bridge' หรือ 'transfer' ในสัญญาของคุณ
+      writeContract({
+        address: contracts.token as `0x${string}`, // 0x8Da6... บน BSC
+        abi: ABIS.token,
+        functionName: 'transfer', // หรือชื่อฟังก์ชัน Bridge ของคุณ
+        args: [
+          '0xRecipientBridgeAddress', // Address ของ Bridge Vault
+          parseEther(amount)
+        ],
+      });
+    } catch (err) {
+      notify('error', 'การเชื่อมต่อ Neural Link ขัดข้อง');
+    }
+  };
+
+  // 🟢 ตรวจสอบสถานะธุรกรรม (Transaction Tracking)
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (isConfirming) notify('info', 'กำลังทำการหลอมรวมพลังงานใน Ledger (Confirming)...');
+    if (isSuccess) {
+      notify('success', 'สลับพลังงานสำเร็จ! มวลสารกำลังเดินทางข้ามเครือข่าย ✨');
+      // สั่ง Success Ritual ที่เราคุยกันไว้
+    }
+  }, [isConfirming, isSuccess]);
+  
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-500">
       <div className="max-w-xl mx-auto">
