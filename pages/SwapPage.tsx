@@ -25,7 +25,7 @@ const SwapPage = () => {
       notify('error', 'กรุณาระบุจำนวนพลังงานที่ต้องการสลับ');
       return;
     }
-    
+  };
     if (parseFloat(amount) > parseFloat(balances.token)) {
       notify('error', 'พลังงานใน Ledger ไม่เพียงพอสำหรับการทำพิธีกรรมนี้');
       return;
@@ -63,7 +63,7 @@ const { data: hash, writeContract, isPending } = useWriteContract();
       // สั่ง Success Ritual ที่เราคุยกันไว้
     }
   }, [isConfirming, isSuccess]);
-}
+
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-500">
       <div className="max-w-xl mx-auto">
