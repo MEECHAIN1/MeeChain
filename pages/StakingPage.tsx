@@ -64,10 +64,6 @@ const [rate, staked] = await Promise.all([
     }
   };
 
-  const chainId = useChainId();
-  const { data: hash, writeContract, isPending } = useWriteContract();
-  const contracts = getADRS(chainId);
-
   const handleAction = async (action: 'stake' | 'claim') => {
     if (!state.account) {
       notify('error', 'กรุณาเชื่อมต่อ Neural Link ก่อนดำเนินการ ⚡');
