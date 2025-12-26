@@ -36,7 +36,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/gallery" element={<GalleryPage />} />
                   <Route path="/staking" element={<StakingPage />} />
-                  <Route path="/SwapPage" element={<SwapPage />} />
+                  <Route path="/Swap" element={<SwapPage />} />
                   <Route path="/oracle" element={<OraclePage />} />
                   <Route path="/logs" element={<EventLogPage />} />
                   <Route path="/debug" element={<TailwindTestPage />} />
