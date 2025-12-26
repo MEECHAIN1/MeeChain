@@ -38,9 +38,6 @@ const SwapPage = () => {
 const { data: hash, writeContract, isPending } = useWriteContract();
   const contracts = getADRS(chainId);
   
-  const handleExecute = async () => {
-    if (!amount || parseFloat(amount) <= 0) return;
-
     try {
       // 🟢 เรียกฟังก์ชัน 'bridge' หรือ 'transfer' ในสัญญาของคุณ
       writeContract({
