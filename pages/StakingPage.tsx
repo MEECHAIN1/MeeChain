@@ -1,7 +1,7 @@
 import { useChainId } from 'wagmi';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppState';
-import { getRewardRate, getStakedBalance, stakeTokens, claimRewards } from '../lib/services/staking';
+import { getRewardRate, getStakedBalance, claimRewards } from '../lib/services/staking';
 import { triggerSuccessRitual } from '../lib/rituals';
 import { formatEther } from 'viem';
 
