@@ -23,6 +23,7 @@ export const meechain = {
 export const client = createPublicClient({
   chain: meechain,
   transport: fallback([
-    http(RPC_URL), http()
+    http(RPC_URL), 
+      http()
   ], { rank: false }),
 });
