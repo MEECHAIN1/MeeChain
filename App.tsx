@@ -51,7 +51,7 @@ const App: React.FC = () => {
                     </div>
                     <span className="font-bold text-sm">MeeBot Ecosystem</span>
                   </div>
-                  <div className="flex gap-8 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                  <div className="flex gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     <a href="#" className="hover:text-white transition-colors">Documentation</a>
                     <a href="#" className="hover:text-white transition-colors">Governance</a>
                     <a href="#" className="hover:text-white transition-colors">Support</a>
