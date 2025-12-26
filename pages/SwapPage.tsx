@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppState';
 import { formatEther, parseEther } from 'viem';
-import { ArrowDownUp, Zap, ArrowRightLeft } from 'lucide-react';
+import { Zap, ArrowRightLeft } from 'lucide-react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ABIS, getADRS } from '../lib/contracts';
 
@@ -10,60 +10,57 @@ const SwapPage = () => {
   const { chainId, balances, account } = state;
   const [amount, setAmount] = useState('');
 
-  // กำหนดเชนปลายทางอัตโนมัติ (ถ้าอยู่ BSC ปลายทางจะเป็น MeeChain และในทางกลับกัน)
+  // 1. Hooks สำหรับทำธุรกรรม
+  const { data: hash, writeContract, isPending } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const contracts = getADRS(chainId);
+
+  // 2. Logic การคำนวณ
   const isBSC = chainId === 56;
   const sourceName = isBSC ? 'BSC Mainnet' : 'MeeChain';
   const targetName = isBSC ? 'MeeChain' : 'BSC Mainnet';
-
-  // คำนวณยอดที่จะได้รับ (จำลองค่าธรรมเนียม Bridge 0.5%)
   const fee = 0.005;
   const receiveAmount = amount ? (parseFloat(amount) * (1 - fee)).toFixed(4) : '0.00';
-}
 
+  // 3. ฟังก์ชันดำเนินการ (ต้องอยู่ภายใน SwapPage)
   const handleExecute = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       notify('error', 'กรุณาระบุจำนวนพลังงานที่ต้องการสลับ');
       return;
     }
-  }
+
     if (parseFloat(amount) > parseFloat(balances.token)) {
       notify('error', 'พลังงานใน Ledger ไม่เพียงพอสำหรับการทำพิธีกรรมนี้');
       return;
     }
 
-    notify('info', `กำลังเริ่มต้นพิธีกรรม Bridge: ส่ง ${amount} MCB จาก ${sourceName} ไปยัง ${targetName}...`);
-    // ส่วนนี้คือจุดที่จะใส่ useWriteContract ในขั้นตอนต่อไปครับ
-  };
-  
-const { data: hash, writeContract, isPending } = useWriteContract();
-  const contracts = getADRS(chainId);
-  
     try {
-      // 🟢 เรียกฟังก์ชัน 'bridge' หรือ 'transfer' ในสัญญาของคุณ
+      notify('info', `กำลังเริ่มต้นพิธีกรรม Bridge: ส่ง ${amount} MCB จาก ${sourceName}...`);
+      
+      // 🟢 เรียกใช้สัญญาจริง 0x8Da6... บน BSC
       writeContract({
-        address: contracts.token as `0x${string}`, // 0x8Da6... บน BSC
+        address: contracts.token as `0x${string}`,
         abi: ABIS.token,
-        functionName: 'transfer', // หรือชื่อฟังก์ชัน Bridge ของคุณ
+        functionName: 'transfer', 
         args: [
-          '0xRecipientBridgeAddress', // Address ของ Bridge Vault
+          '0xRecipientBridgeAddress', // เปลี่ยนเป็นที่อยู่ Bridge ของคุณ
           parseEther(amount)
         ],
       });
     } catch (err) {
       notify('error', 'การเชื่อมต่อ Neural Link ขัดข้อง');
     }
+  };
 
-  // 🟢 ตรวจสอบสถานะธุรกรรม (Transaction Tracking)
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-
+  // 4. ติดตามสถานะ (ต้องอยู่ภายใน SwapPage)
   useEffect(() => {
     if (isConfirming) notify('info', 'กำลังทำการหลอมรวมพลังงานใน Ledger (Confirming)...');
     if (isSuccess) {
       notify('success', 'สลับพลังงานสำเร็จ! มวลสารกำลังเดินทางข้ามเครือข่าย ✨');
-      // สั่ง Success Ritual ที่เราคุยกันไว้
     }
-  }, [isConfirming, isSuccess]);
+  }, [isConfirming, isSuccess, notify]);
 
+  // 5. การแสดงผล UI
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-500">
       <div className="max-w-xl mx-auto">
@@ -72,17 +69,21 @@ const { data: hash, writeContract, isPending } = useWriteContract();
             <ArrowRightLeft size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">ENERGY CONVERTER</h1>
-            <p className="text-slate-400 text-sm">สลับเปลี่ยนมวลสารพลังงานข้ามเครือข่าย Neural Link</p>
+            <h1 className="text-3xl font-bold text-white tracking-tight uppercase">Energy Converter</h1>
+            <p className="text-slate-400 text-sm italic">การสลับเปลี่ยนมวลสารพลังงานข้ามเครือข่าย</p>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-blue-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-          {/* ส่วนเชนต้นทาง */}
-          <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 mb-2">
-            <div className="flex justify-between text-xs text-slate-500 mb-2 uppercase tracking-widest">
+        <div className="bg-slate-900/80 border border-blue-500/30 rounded-[2rem] p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Zap size={120} />
+          </div>
+
+          {/* ส่วนต้นทาง */}
+          <div className="bg-black/40 p-6 rounded-2xl border border-white/5 mb-2">
+            <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
               <span>จาก: {sourceName}</span>
-              <span>ยอดที่มี: {balances.token} MCB</span>
+              <span>Available: {balances.token} MCB</span>
             </div>
             <div className="flex items-center gap-4">
               <input 
@@ -90,63 +91,46 @@ const { data: hash, writeContract, isPending } = useWriteContract();
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="bg-transparent text-3xl font-medium text-white outline-none w-full"
+                className="bg-transparent text-4xl font-black text-white outline-none w-full tracking-tighter"
               />
               <button 
                 onClick={() => setAmount(balances.token)}
-                className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20 hover:bg-blue-500/20"
+                className="text-[10px] font-black bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 hover:bg-blue-500/30 transition-all"
               >
                 MAX
               </button>
             </div>
           </div>
 
-          {/* ปุ่มสลับสายฟ้า */}
-          <div className="flex justify-center -my-4 relative z-10">
-            <div className="bg-slate-900 border border-blue-500/50 p-2 rounded-full text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-              <Zap size={20} fill="currentColor" />
+          {/* Icon ตรงกลาง */}
+          <div className="flex justify-center -my-5 relative z-10">
+            <div className="bg-slate-900 border-2 border-blue-500/50 p-3 rounded-full text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.4)] animate-pulse">
+              <Zap size={24} fill="currentColor" />
             </div>
           </div>
 
-          {/* ส่วนเชนปลายทาง */}
-          <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 mt-2 mb-6">
-            <div className="flex justify-between text-xs text-slate-500 mb-2 uppercase tracking-widest">
+          {/* ส่วนปลายทาง */}
+          <div className="bg-black/40 p-6 rounded-2xl border border-white/5 mt-2 mb-8">
+            <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
               <span>ไปยัง: {targetName}</span>
-              <span>(โดยประมาณ)</span>
+              <span>Est. Output</span>
             </div>
-            <div className="text-3xl font-medium text-blue-300">
-              {receiveAmount} <span className="text-lg text-slate-500">MCB</span>
-            </div>
-          </div>
-
-          {/* รายละเอียดธุรกรรม */}
-          <div className="space-y-2 mb-8 px-1">
-            <div className="flex justify-between text-sm text-slate-400">
-              <span>Conversion Fee (0.5%)</span>
-              <span>{(parseFloat(amount || '0') * fee).toFixed(4)} MCB</span>
-            </div>
-            <div className="flex justify-between text-sm text-slate-400">
-              <span>Network Status</span>
-              <span className="text-green-400 flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                OPTIMAL
-              </span>
+            <div className="text-4xl font-black text-blue-400 tracking-tighter">
+              {receiveAmount} <span className="text-sm text-slate-600 uppercase">MCB</span>
             </div>
           </div>
 
-          {/* ปุ่มดำเนินการ */}
           <button 
             onClick={handleExecute}
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            disabled={isPending || isConfirming || !amount}
+            className="w-full py-5 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-white font-black rounded-2xl shadow-xl transition-all active:scale-[0.98] uppercase tracking-[0.3em] flex items-center justify-center gap-3 border-b-4 border-blue-800"
           >
-            <Zap size={20} />
-            EXECUTE COMMITMENT
+            {isPending || isConfirming ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : <Zap size={18} />}
+            Execute Commitment
           </button>
         </div>
-
-        <p className="text-center text-slate-500 text-xs mt-6">
-          * การทำธุรกรรมข้ามเครือข่ายอาจใช้เวลา 3-5 นาทีในการยืนยันใน Ledger
-        </p>
       </div>
     </div>
   );
