@@ -1,4 +1,3 @@
-
 import { createPublicClient, http, fallback } from 'viem';
 import { localhost } from 'viem/chains';
 
