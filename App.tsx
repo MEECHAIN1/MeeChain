@@ -14,7 +14,7 @@ import OraclePage from './pages/OraclePage';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
-import SwapPage from "./pages/SwapPage";
+import SwapPage from './pages/SwapPage';
 
 
 const queryClient = new QueryClient();
