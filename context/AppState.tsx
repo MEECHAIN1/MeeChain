@@ -93,32 +93,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notify('success', `ใหม่: ตรวจพบ ${event.type} ใน Ledger ✨`);
   }, [notify]);
 
-  const refreshBalances = useCallback(async () => {
-    if (!address) return;
-    setGlobalLoading('balances', true);
-    try {
-      const [nativeBal, tokenBal, nftCount, rewardRate] = await Promise.all([
-        client.getBalance({ address }).catch(() => parseEther("8.5")),
-        getTokenBalance(address),
-        getNFTBalance(address),
-        getRewardRate()
-      ]);
+ const refreshBalances = useCallback(async () => {
+  if (!address) return;
+  setGlobalLoading('balances', true);
+  try {
+    const [nativeBal, tokenBal, nftCount, rewardRate] = await Promise.all([
+      client.getBalance({ address }).catch(() => parseEther("8.5")),
+      // 🟢 ส่ง chainId เข้าไปเพื่อให้ Service สลับ Address อัตโนมัติ
+      getTokenBalance(address, chainId), 
+      getNFTBalance(address, chainId),
+      getRewardRate(chainId)
+    ]);
 
-      setState(prev => ({
-        ...prev,
-        balances: {
-          native: formatEther(nativeBal),
-          token: formatEther(tokenBal),
-          nftCount: Number(nftCount),
-          rewardRate: formatEther(rewardRate)
-        }
-      }));
-    } catch (error) {
-      console.error("Balance refresh failed", error);
-    } finally {
-      setGlobalLoading('balances', false);
-    }
-  }, [address, setGlobalLoading]);
+    setState(prev => ({
+      ...prev,
+      balances: {
+        native: formatEther(nativeBal),
+        token: formatEther(tokenBal),
+        nftCount: Number(nftCount),
+        rewardRate: formatEther(rewardRate)
+      }
+    }));
+  } catch (error) {
+    console.error("Balance refresh failed", error);
+  } finally {
+    setGlobalLoading('balances', false);
+  }
+}, [address, setGlobalLoading, chainId]);
 
   useEffect(() => {
     if (!address) return;
