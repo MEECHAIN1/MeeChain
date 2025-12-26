@@ -26,7 +26,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const chainId = useChainId();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const [state, setState] = useState<UserState>({
     account: null,
