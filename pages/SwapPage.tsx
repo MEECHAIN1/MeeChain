@@ -25,7 +25,7 @@ const SwapPage = () => {
       notify('error', 'กรุณาระบุจำนวนพลังงานที่ต้องการสลับ');
       return;
     }
-  };
+  }
     if (parseFloat(amount) > parseFloat(balances.token)) {
       notify('error', 'พลังงานใน Ledger ไม่เพียงพอสำหรับการทำพิธีกรรมนี้');
       return;
