@@ -7,6 +7,7 @@ import { formatEther } from 'viem';
 
 const StakingPage: React.FC = () => {
   const { state, refreshBalances, addEvent, setGlobalLoading } = useApp();
+  const chainId = useChainId();
   const [stakeAmount, setStakeAmount] = useState('');
   const [percentage, setPercentage] = useState(0);
   const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', msg: string }>({ type: 'idle', msg: '' });
@@ -17,16 +18,16 @@ const StakingPage: React.FC = () => {
   const fetchData = async () => {
     if (!state.account) return;
     try {
-      const [rate, staked] = await Promise.all([
-        getRewardRate(),
-        getStakedBalance(state.account)
+const [rate, staked] = await Promise.all([
+        getRewardRate(chainId),
+        getStakedBalance(state.account, chainId)
       ]);
       setContractData({
         rewardRate: formatEther(rate),
         userStaked: formatEther(staked)
       });
     } catch (err) {
-      console.warn("⚡ Ritual Telemetry error in UI, service fallbacks should handle this.");
+      console.warn("⚡ Ritual Telemetry error in UI");
     }
   };
 
