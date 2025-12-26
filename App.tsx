@@ -14,6 +14,8 @@ import OraclePage from './pages/OraclePage';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
+import SwapPage from "./pages/SwapPage";
+
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/gallery" element={<GalleryPage />} />
                   <Route path="/staking" element={<StakingPage />} />
+                  <Route path="/SwapPage" element={<SwapPage />} />
                   <Route path="/oracle" element={<OraclePage />} />
                   <Route path="/logs" element={<EventLogPage />} />
                   <Route path="/debug" element={<TailwindTestPage />} />
