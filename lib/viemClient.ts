@@ -2,12 +2,12 @@
 import { createPublicClient, http, fallback } from 'viem';
 import { localhost } from 'viem/chains';
 
-const RPC_URL = process.env.VITE_RPC_URL || "www.meechain.run.place";
+const RPC_URL = process.env.VITE_RPC_URL || "https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6";
 
 // Default chain config for MeeChain
 export const meechain = {
   ...localhost,
-  id: 1337,
+  id: 222222,
   name: 'MeeChain',
   network: 'meechain',
   nativeCurrency: {
@@ -26,6 +26,6 @@ export const client = createPublicClient({
   transport: fallback([
     http(RPC_URL),
     // Using a public node that is generally more lenient with rate limits/auth for simple dev demos
-    http("https://ethereum-sepolia.publicnode.com")
+    http("https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6")
   ], { rank: false }),
 });
