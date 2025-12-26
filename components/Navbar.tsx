@@ -12,7 +12,7 @@ const Navbar: React.FC = () => {
     { label: 'Staking', path: '/staking' },
     { label: 'Swap', path: '/swap' },
     { label: 'Oracle', path: '/oracle' },
-    { label: 'Logs', path: '/logs' },
+    { label: 'Logs', path: '/logs' }
   ];
 
   return (
