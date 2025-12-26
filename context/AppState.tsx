@@ -48,7 +48,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
-  // Sync state with wagmi account
   useEffect(() => {
     setState(prev => ({
       ...prev,
@@ -91,13 +90,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notify('success', `ใหม่: ตรวจพบ ${event.type} ใน Ledger ✨`);
   }, [notify]);
 
- const refreshBalances = useCallback(async () => {
+const refreshBalances = useCallback(async () => {
   if (!address) return;
   setGlobalLoading('balances', true);
   try {
     const [nativeBal, tokenBal, nftCount, rewardRate] = await Promise.all([
       client.getBalance({ address }).catch(() => parseEther("8.5")),
-      // 🟢 ส่ง chainId เข้าไปเพื่อให้ Service สลับ Address อัตโนมัติ
+      // 🟢 ส่ง chainId เข้าไปเพื่อให้เลือก Address 0x8Da6... บน BSC อัตโนมัติ
       getTokenBalance(address, chainId), 
       getNFTBalance(address, chainId),
       getRewardRate(chainId)
@@ -112,8 +111,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rewardRate: formatEther(rewardRate)
       }
     }));
-  } catch (error) {
-    console.error("Balance refresh failed", error);
   } finally {
     setGlobalLoading('balances', false);
   }
