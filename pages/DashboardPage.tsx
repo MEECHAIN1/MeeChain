@@ -1,7 +1,8 @@
-import { useMCBBalance } from '../hooks/useMCBBalance';
-import { useChainId } from 'wagmi';
 import React, { useEffect } from 'react';
+import { useChainId } from 'wagmi';
 import { useApp } from '../context/AppState';
+import { useMCBBalance } from '../hooks/useMCBBalance';
+import { NetworkSwitcher } from '../components/NetworkSwitcher';
 import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
 
 const DashboardPage: React.FC = () => {
@@ -48,7 +49,28 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </header>
-
+<header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+  <div>
+    <h1 className="text-5xl font-black tracking-tighter mb-2">
+      ✨ MeeBot <span className="text-sky-400">Dashboard</span>
+    </h1>
+    <p className="text-slate-400 font-medium">Monitoring the ritual flow of the MeeChain ecosystem.</p>
+  </div>
+  
+  {state.account && (
+    <div className="flex flex-col items-end gap-3">
+      {/* 🟢 ปุ่มสลับเชนสุดล้ำของเรา */}
+      <NetworkSwitcher />
+      
+      <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-2 rounded-2xl backdrop-blur-md">
+        <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-500 animate-spin' : 'bg-emerald-500 animate-pulse'}`}></div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+          {isLoading ? 'Syncing Ritual...' : 'Nexus Connected'}
+        </span>
+      </div>
+    </div>
+  )}
+</header>
       {!state.account ? (
         <div className="glass p-16 rounded-[3rem] text-center border-dashed border-white/10">
           <div className="w-20 h-20 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl animate-bounce">
