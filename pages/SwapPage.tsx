@@ -52,7 +52,6 @@ const { data: hash, writeContract, isPending } = useWriteContract();
     } catch (err) {
       notify('error', 'การเชื่อมต่อ Neural Link ขัดข้อง');
     }
-  };
 
   // 🟢 ตรวจสอบสถานะธุรกรรม (Transaction Tracking)
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
