@@ -39,7 +39,7 @@ export const askOracle = async (prompt: string, telemetry: any) => {
         systemInstruction,
         temperature: 0.8,
         topP: 0.95,
-        thinkingConfig: { thinkingBudget: 0 } // Flash model, no thinking needed for concise oracle bits
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
 
