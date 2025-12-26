@@ -16,8 +16,29 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(__dirname, '.')
+        }
+      },
+          build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 200,
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-web3': ['wagmi', 'viem', '@wagmi/core', '@tanstack/react-query'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'canvas-confetti'],
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei']
         }
       }
-    };
+    }
+  },
 });
