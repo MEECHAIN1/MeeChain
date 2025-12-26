@@ -1,4 +1,4 @@
-
+import { useChainId } from 'wagmi';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserState, BlockchainEvent, RitualNotification } from '../types';
 import { formatEther, parseEther } from 'viem';
