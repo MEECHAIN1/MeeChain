@@ -10,8 +10,9 @@ const Navbar: React.FC = () => {
     { label: 'Dashboard', path: '/' },
     { label: 'Gallery', path: '/gallery' },
     { label: 'Staking', path: '/staking' },
+    { label: 'Swap', path: '/swap' },
     { label: 'Oracle', path: '/oracle' },
-    { label: 'Logs', path: '/logs' }
+    { label: 'Logs', path: '/logs' },
   ];
 
   return (
