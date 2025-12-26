@@ -18,8 +18,8 @@ const SwapPage = () => {
   // คำนวณยอดที่จะได้รับ (จำลองค่าธรรมเนียม Bridge 0.5%)
   const fee = 0.005;
   const receiveAmount = amount ? (parseFloat(amount) * (1 - fee)).toFixed(4) : '0.00';
+}
 
-  
   const handleExecute = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       notify('error', 'กรุณาระบุจำนวนพลังงานที่ต้องการสลับ');
@@ -64,7 +64,7 @@ const { data: hash, writeContract, isPending } = useWriteContract();
       // สั่ง Success Ritual ที่เราคุยกันไว้
     }
   }, [isConfirming, isSuccess]);
-  
+
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-500">
       <div className="max-w-xl mx-auto">
