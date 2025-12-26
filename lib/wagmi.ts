@@ -26,6 +26,6 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [meechain.id]: http(https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6),
+    [meechain.id]: http(),
   },
 });
