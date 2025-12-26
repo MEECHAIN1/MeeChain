@@ -1,5 +1,7 @@
-import { createPublicClient, http, fallback } from 'viem';
+
 import { localhost } from 'viem/chains';
+import { createPublicClient, http } from 'viem';
+import { mainnet, bsc } from 'viem/chains';
 
 const RPC_URL = process.env.VITE_RPC_URL || "https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6";
 
@@ -14,15 +16,14 @@ export const meechain = {
     symbol: 'MCB',
   },
   rpcUrls: {
-    public: { http: [RPC_URL] },
-    default: { http: [RPC_URL] },
+    public: { http: ['https://mcb-chain.bolt.host'] },
+    default: { http: ['https://mcb-chain.bolt.host'] },
   },
 };
 
-export const client = createPublicClient({
-  chain: meechain,
-  transport: fallback([
-    http(RPC_URL), 
-      http('https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6'),
-  ], { rank: false }),
-});
+export const getClient = (chainId?: number) => {
+  return createPublicClient({
+    chain: chainId === 56 ? bsc : mainnet,
+    transport: http(chainId === 56 ? 'https://bsc-dataseed.binance.org/' : undefined),
+  });
+};
