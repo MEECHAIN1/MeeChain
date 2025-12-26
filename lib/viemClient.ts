@@ -5,7 +5,7 @@ const RPC_URL = process.env.VITE_RPC_URL || "https://shape-mainnet.g.alchemy.com
 
 export const meechain = {
   ...localhost,
-  id: 222222,
+  id: 1337,
   name: 'MeeChain',
   network: 'meechain',
   nativeCurrency: {
