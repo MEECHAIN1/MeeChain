@@ -58,7 +58,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [address, chainId]);
 
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
-    // Safety: Ensure message is a string to avoid [object Object]
     const cleanMessage = typeof message === 'string' ? message : JSON.stringify(message);
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
