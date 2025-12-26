@@ -134,6 +134,16 @@ const [rate, staked] = await Promise.all([
       setTimeout(() => setStatus({ type: 'idle', msg: '' }), 5000);
     }
   };
+// 🟢 ตรวจสอบสถานะการยืนยันธุรกรรมใน Ledger
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (isConfirming) setStatus({ type: 'loading', msg: 'กำลังบันทึกข้อมูลลงใน Ledger (Confirming)...' });
+    if (isSuccess) {
+      setStatus({ type: 'success', msg: '✨ พิธีกรรมเสร็จสมบูรณ์! พลังงานถูกถ่ายโอนเรียบร้อย' });
+      refreshBalances(); // อัปเดตยอดเงินทันที
+    }
+  }, [isConfirming, isSuccess]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -212,7 +222,6 @@ const [rate, staked] = await Promise.all([
                   ))}
                 </div>
               </div>
-
               <button 
                 onClick={() => handleAction('stake')}
                 disabled={!state.account || isProcessing || !stakeAmount}
