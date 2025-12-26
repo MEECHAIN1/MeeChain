@@ -17,7 +17,7 @@ export const getClient = (chainId?: number) => {
   const isBSC = chainId === 56;
   return createPublicClient({
     // ถ้าเป็น 56 ให้เลือก BSC ถ้าไม่ใช่ให้เลือก MeeChain
-    chain: isBSC ? bsc :
+chain: isBSC ? bsc : meechain as any,
     transport: http(isBSC ? 'https://bsc-dataseed.binance.org/' : meechain.rpcUrls.public.http[0]),
   });
 };
