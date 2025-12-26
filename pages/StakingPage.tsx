@@ -64,21 +64,36 @@ const [rate, staked] = await Promise.all([
     }
   };
 
+  const chainId = useChainId();
+  const { data: hash, writeContract, isPending } = useWriteContract();
+  const contracts = getADRS(chainId);
+
   const handleAction = async (action: 'stake' | 'claim') => {
     if (!state.account) {
-      setStatus({ type: 'error', msg: 'Connect wallet ⚡' });
-      return;
-    }
-
-    if (action === 'stake' && (!stakeAmount || isNaN(Number(stakeAmount)) || Number(stakeAmount) <= 0)) {
-      setStatus({ type: 'error', msg: 'Invalid MCB volume.' });
+      notify('error', 'กรุณาเชื่อมต่อ Neural Link ก่อนดำเนินการ ⚡');
       return;
     }
 
     const loadingKey = action === 'stake' ? 'staking' : 'claiming';
     setGlobalLoading(loadingKey, true);
-    setStatus({ type: 'loading', msg: action === 'stake' ? `Channeling ${stakeAmount} MCB...` : 'Claiming accumulated rewards...' });
+    setStatus({ 
+      type: 'loading', 
+      msg: action === 'stake' ? `กำลังหลอมรวม MCB...` : 'กำลังเก็บเกี่ยวรางวัลจาก Vault...' 
+    });
 
+    try {
+      // 🟢 ส่งธุรกรรมจริงไปยัง Smart Contract
+      writeContract({
+        address: contracts.staking as `0x${string}`,
+        abi: ABIS.staking,
+        functionName: action === 'stake' ? 'stake' : 'getReward', // ชื่อฟังก์ชันในสัญญาของคุณ
+        args: action === 'stake' ? [parseEther(stakeAmount)] : [],
+      });
+    } catch (err) {
+      setStatus({ type: 'error', msg: `❌ เกิดสัญญาณรบกวนในพิธีกรรม: ${err}` });
+      setGlobalLoading(loadingKey, false);
+    }
+  };
     try {
       let hash = "";
       if (action === 'stake') {
