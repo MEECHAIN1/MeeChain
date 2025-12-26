@@ -54,6 +54,7 @@ const DashboardPage: React.FC = () => {
     </div>
   )}
 </header>
+      
       {!state.account ? (
         <div className="glass p-16 rounded-[3rem] text-center border-dashed border-white/10">
           <div className="w-20 h-20 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl animate-bounce">
