@@ -1,4 +1,4 @@
-
+import { useChainId } from 'wagmi';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppState';
 import { getRewardRate, getStakedBalance, stakeTokens, claimRewards } from '../lib/services/staking';
