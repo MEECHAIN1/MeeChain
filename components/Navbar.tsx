@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import WalletConnectButton from './WalletConnectButton';
+import { generateSpeech, editImage } from '../lib/services/geminiService';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
