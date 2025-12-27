@@ -39,11 +39,6 @@ const DashboardPage: React.FC = () => {
         </div>
       </header>ฃ
       
-<MeeBotAIEditor 
-  provider={window.ethereum} // สำหรับเชื่อมต่อกระเป๋า
-  connectedAccount={state.account} 
-  onMintSuccess={() => refreshBalances()} 
-/>
       {/* แถบสถิติหลัก (MCB Balance, Staked, NFT) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard label="MCB BALANCE" value={state.balances.native} unit="MCB" icon="💎" />
