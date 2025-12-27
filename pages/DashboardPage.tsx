@@ -12,13 +12,6 @@ const DashboardPage: React.FC = () => {
   const chainId = useChainId();
   const isLoading = state.loadingStates.balances || isBscLoading;
 
-  // ตัวอย่างการเรียกใช้ใน DashboardPage.tsx
-<MeeBotAIEditor 
-  provider={window.ethereum} // สำหรับเชื่อมต่อกระเป๋า
-  connectedAccount={state.account} 
-  onMintSuccess={() => refreshBalances()} 
-/>
-  
   useEffect(() => {
     if (state.account) {
       refreshBalances();
@@ -44,8 +37,13 @@ const DashboardPage: React.FC = () => {
              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black border border-emerald-500/20">NEXUS CONNECTED</span>
            </div>
         </div>
-      </header>
-
+      </header>ฃ
+      
+<MeeBotAIEditor 
+  provider={window.ethereum} // สำหรับเชื่อมต่อกระเป๋า
+  connectedAccount={state.account} 
+  onMintSuccess={() => refreshBalances()} 
+/>
       {/* แถบสถิติหลัก (MCB Balance, Staked, NFT) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard label="MCB BALANCE" value={state.balances.native} unit="MCB" icon="💎" />
