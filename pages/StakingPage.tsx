@@ -100,18 +100,11 @@ const [rate, staked] = await Promise.all([
       setGlobalLoading(loadingKey, false);
     }
   };
+  
     try {
       let hash = "";
-      if (action === 'stake') {
-        hash = await stakeTokens(stakeAmount);
-        addEvent({
-          type: 'Staked',
-          contract: 'Staking',
-          from: state.account,
-          amount: `${stakeAmount} MCB`,
-          hash
-        });
       } else {
+      if (action === 'stake')
         hash = await claimRewards();
         addEvent({
           type: 'Claimed',
