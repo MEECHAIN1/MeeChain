@@ -135,3 +135,4 @@ const txHash = await mintAiMeeBot(provider, "ipfs://your-metadata-cid");
     </div>
    );
   }
+}
