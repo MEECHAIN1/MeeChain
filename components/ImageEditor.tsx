@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { editImage } from '../src/lib/services/geminiService';
+import { ethers } from 'ethers';
 import { ImageFile } from '../types';
 import { DownloadIcon, MeeBotDefaultIcon, SpinnerIcon, UploadIcon, WandIcon } from './Icons';
-import { mintMeeBot } from '../src/lib/services/web3Service';
-import { ethers } from 'ethers';
+import { editImage } from '../lib/services/geminiService';
+import { mintMeeBot } from '../lib/services/web3Service';
 
 interface ImageEditorProps {
   provider: ethers.BrowserProvider | null;
