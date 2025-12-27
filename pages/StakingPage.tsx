@@ -106,15 +106,6 @@ const [rate, staked] = await Promise.all([
         msg: action === 'stake' 
           ? `🎉 ${stakeAmount} MCB Locked in Vault ✨` 
 
-// 🟢 ตรวจสอบสถานะการยืนยันธุรกรรมใน Ledger
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-
-  useEffect(() => {
-    if (isConfirming) setStatus({ type: 'loading', msg: 'กำลังบันทึกข้อมูลลงใน Ledger (Confirming)...' });
-    if (isSuccess) {
-      setStatus({ type: 'success', msg: '✨ พิธีกรรมเสร็จสมบูรณ์! พลังงานถูกถ่ายโอนเรียบร้อย' });
-      refreshBalances(); // อัปเดตยอดเงินทันที
-    }
   }, [isConfirming, isSuccess]);
 
   return (
