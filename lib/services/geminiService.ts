@@ -14,7 +14,7 @@ async function getAiClient() {
       try {
         // Prompt the user to select a key.
         await window.aistudio.openSelectKey();
-.
+        
         if (!process.env.API_KEY) {
             throw new Error(POST_KEY_SELECTION_ERROR_MESSAGE);
         }
