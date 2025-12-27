@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { useApp } from '../context/AppState';
