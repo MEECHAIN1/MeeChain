@@ -54,8 +54,10 @@ export const MeeBotAIEditor: React.FC<ImageEditorProps> = ({
     } finally {
       setIsGenerating(false);
     }
-  };
-
+    
+// ตัวอย่าง Flow ใน ImageEditor.tsx
+const txHash = await mintAiMeeBot(provider, "ipfs://your-metadata-cid");
+  
   return (
     <div className="glass p-8 rounded-[2.5rem] border-white/5 space-y-6 bg-slate-900/50 backdrop-blur-xl">
       <div className="flex justify-between items-center">
