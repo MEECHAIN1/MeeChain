@@ -16,6 +16,7 @@ import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import SwapPage from './pages/SwapPage';
 import ImageEditor from './components/ImageEditor';
+import { MeeBotDefaultIcon } from './components/Icons';
 
 
 const queryClient = new QueryClient();
