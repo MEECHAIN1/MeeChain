@@ -15,7 +15,7 @@ import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import SwapPage from './pages/SwapPage';
-import ImageEditor from './components/ImageEditor';
+import { MeeBotAIEditor } from './components/ImageEditor';
 import { MeeBotDefaultIcon } from './components/Icons';
 
 
