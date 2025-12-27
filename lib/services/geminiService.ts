@@ -14,7 +14,7 @@ async function getAiClient() {
       try {
         // Prompt the user to select a key.
         await window.aistudio.openSelectKey();
-        // After user interaction, check for the key. If it's not there, it's a specific race condition/environment issue.
+.
         if (!process.env.API_KEY) {
             throw new Error(POST_KEY_SELECTION_ERROR_MESSAGE);
         }
