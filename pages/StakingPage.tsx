@@ -104,7 +104,6 @@ const [rate, staked] = await Promise.all([
     try {
       let hash = "";
       if (action === 'stake')
-        hash = await claimRewards();
         addEvent({
           type: 'Claimed',
           contract: 'Staking',
