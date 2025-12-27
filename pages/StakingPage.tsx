@@ -100,7 +100,6 @@ const [rate, staked] = await Promise.all([
       setGlobalLoading(loadingKey, false);
     }
   };
-  }, [isConfirming, isSuccess]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
