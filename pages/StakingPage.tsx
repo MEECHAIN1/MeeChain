@@ -105,19 +105,7 @@ const [rate, staked] = await Promise.all([
         type: 'success', 
         msg: action === 'stake' 
           ? `🎉 ${stakeAmount} MCB Locked in Vault ✨` 
-          : `🎁 Rewards Successfully Claimed ✨` 
-      });
-      setStakeAmount('');
-      setPercentage(0);
-      await refreshBalances();
-      await fetchData();
-    } catch (err) {
-      setStatus({ type: 'error', msg: `❌ Interference detected in ritual flow.` });
-    } finally {
-      setGlobalLoading(loadingKey, false);
-      setTimeout(() => setStatus({ type: 'idle', msg: '' }), 5000);
-    }
-  };
+
 // 🟢 ตรวจสอบสถานะการยืนยันธุรกรรมใน Ledger
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
