@@ -15,12 +15,6 @@ export const CONTRACT_ADDRESSES: { [chainId: number]: string } = {
     [137]: PLACEHOLDER_ADDRESS,
     [56]: PLACEHOLDER_ADDRESS,
 };
-const IPFS_GATEWAYS = [
-  "https://ipfs.io/ipfs/",
-  "https://gateway.pinata.cloud/ipfs/",
-  "https://cloudflare-ipfs.com/ipfs/",
-];
-
 // The ABI is now included directly in the source code to bypass module resolution issues.
 const MEEBOT_NFT_ABI = [
     {
