@@ -64,40 +64,59 @@ const [rate, staked] = await Promise.all([
     }
   };
 
-// 1. ตรวจสอบว่ามีการประกาศ async หน้าฟังก์ชัน
   const handleAction = async (action: 'stake' | 'claim') => {
     if (!state.account) {
-      notify('error', 'กรุณาเชื่อมต่อ Neural Link ก่อนดำเนินการ ⚡');
+      setStatus({ type: 'error', msg: 'Connect wallet ⚡' });
+      return;
+    }
+
+    if (action === 'stake' && (!stakeAmount || isNaN(Number(stakeAmount)) || Number(stakeAmount) <= 0)) {
+      setStatus({ type: 'error', msg: 'Invalid MCB volume.' });
       return;
     }
 
     const loadingKey = action === 'stake' ? 'staking' : 'claiming';
     setGlobalLoading(loadingKey, true);
-    
+    setStatus({ type: 'loading', msg: action === 'stake' ? `Channeling ${stakeAmount} MCB...` : 'Claiming accumulated rewards...' });
+
     try {
-      // 2. ตอนนี้คุณจะสามารถใช้ await ได้โดยไม่ติด Error แล้วครับ
       let hash = "";
       if (action === 'stake') {
-        // เรียกใช้ฟังก์ชันส่งธุรกรรมจริงไปยังสัญญา
-        writeContract({
-          address: contracts.staking as `0x${string}`,
-          abi: ABIS.staking,
-          functionName: 'stake',
-          args: [parseEther(stakeAmount)],
+        hash = await stakeTokens(stakeAmount);
+        addEvent({
+          type: 'Staked',
+          contract: 'Staking',
+          from: state.account,
+          amount: `${stakeAmount} MCB`,
+          hash
         });
       } else {
-        writeContract({
-          address: contracts.staking as `0x${string}`,
-          abi: ABIS.staking,
-          functionName: 'getReward',
+        hash = await claimRewards();
+        addEvent({
+          type: 'Claimed',
+          contract: 'Staking',
+          from: state.account,
+          amount: `Rewards Claimed`,
+          hash
         });
       }
       
-      // หมายเหตุ: การบันทึก Log และ Success Ritual ให้ทำใน useEffect
+      triggerSuccessRitual();
+      setStatus({ 
+        type: 'success', 
+        msg: action === 'stake' 
+          ? `🎉 ${stakeAmount} MCB Locked in Vault ✨` 
+          : `🎁 Rewards Successfully Claimed ✨` 
+      });
+      setStakeAmount('');
+      setPercentage(0);
+      await refreshBalances();
+      await fetchData();
     } catch (err) {
-      setStatus({ type: 'error', msg: `❌ เกิดสัญญาณรบกวนในพิธีกรรม` });
+      setStatus({ type: 'error', msg: `❌ Interference detected in ritual flow.` });
     } finally {
       setGlobalLoading(loadingKey, false);
+      setTimeout(() => setStatus({ type: 'idle', msg: '' }), 5000);
     }
   };
 
@@ -178,6 +197,7 @@ const [rate, staked] = await Promise.all([
                   ))}
                 </div>
               </div>
+
               <button 
                 onClick={() => handleAction('stake')}
                 disabled={!state.account || isProcessing || !stakeAmount}

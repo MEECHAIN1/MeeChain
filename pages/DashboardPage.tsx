@@ -4,90 +4,18 @@ import { useApp } from '../context/AppState';
 import { useMCBBalance } from '../hooks/useMCBBalance';
 import { NetworkSwitcher } from '../components/NetworkSwitcher';
 import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
-import { generateSpeech, editImage } from '../lib/services/geminiService';
 
 const DashboardPage: React.FC = () => {
   const { state, events, refreshBalances } = useApp();
   const { balance: bscBalance, isLoading: isBscLoading } = useMCBBalance(); // 🟢 ดึงยอดจาก BSC/MeeChain อัตโนมัติ
   const chainId = useChainId();
   const isLoading = state.loadingStates.balances || isBscLoading;
-
+  
   useEffect(() => {
     if (state.account) {
       refreshBalances();
     }
   }, [state.account, refreshBalances]);
-  
-  return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      {/* ส่วนหัวของหน้าจอ */}
-      <header className="flex justify-between items-start">
-        <div>
-          <h1 className="text-5xl font-black italic tracking-tighter">
-            MeeBot <span className="text-sky-400">Dashboard</span>
-          </h1>
-          <p className="text-slate-500 font-bold uppercase text-[10px] mt-2">
-            Monitoring the ritual flow of the MeeChain ecosystem.
-          </p>
-        </div>
-        {/* สถานะการเชื่อมต่อ Network */}
-        <div className="flex flex-col items-end gap-2">
-           <div className="flex gap-2">
-             <span className="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-full text-[10px] font-black border border-sky-500/20">BSC MAINNET</span>
-             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black border border-emerald-500/20">NEXUS CONNECTED</span>
-           </div>
-        </div>
-      </header>ฃ
-      
-      {/* แถบสถิติหลัก (MCB Balance, Staked, NFT) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="MCB BALANCE" value={state.balances.native} unit="MCB" icon="💎" />
-        <StatCard label="STAKED TOKENS" value="1250.75" unit="SMCB" icon="💰" />
-        <StatCard label="NFT BALANCE" value="3" unit="ITEMS" icon="🖼️" />
-        <StatCard label="REWARD RATE" value="0.0000" unit="MCB/SEC" icon="⚡" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* ฝั่งซ้าย: แสดง Log การใช้งาน */}
-        <div className="lg:col-span-7 space-y-6">
-           {/* ส่วนที่เราจะแสดง MeeBot AI Editor เมื่อมีการกดเรียก */}
-           <MeeBotAIEditor /> 
-           
-           <section className="glass p-8 rounded-[2.5rem] border-white/5 min-h-[400px]">
-             <h2 className="text-xs font-black uppercase italic text-slate-400 flex items-center gap-3 mb-8">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Ritual Event Stream
-             </h2>
-             <div className="flex flex-col items-center justify-center h-64 text-slate-700">
-                <p className="font-black italic uppercase tracking-[0.3em]">Awaiting first ritual event...</p>
-             </div>
-           </section>
-        </div>
-
-        {/* ฝั่งขวา: การกระทำด่วน (Stake & Ascend) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="glass p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-500 to-amber-600 text-white relative overflow-hidden group">
-            <h3 className="text-2xl font-black italic mb-2 uppercase">Stake & Ascend</h3>
-            <p className="text-xs font-bold text-white/80 leading-relaxed mb-8">
-              Participate in the MCB staking ritual to unlock legendary bot capabilities and premium governance rights.
-            </p>
-            <div className="bg-black/20 backdrop-blur-md px-4 py-2 rounded-full inline-block text-[10px] font-black border border-white/10 mb-6">
-              APR 24.5%
-            </div>
-            <button className="absolute bottom-8 right-8 w-12 h-12 bg-white rounded-full flex items-center justify-center text-black shadow-2xl transition-transform group-hover:scale-110">
-              →
-            </button>
-          </div>
-          
-          {/* Quick Stats ตามภาพ */}
-          <div className="glass p-6 rounded-3xl border-white/5">
-             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Quick Stats</h4>
-             {/* ใส่ข้อมูลสถิติเพิ่มเติมที่นี่ */}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
   
   const StatCard = ({ title, value, unit, color, icon }: { title: string, value: string, unit: string, color: string, icon: string }) => (
     <div className="glass p-6 rounded-[2rem] hover:border-white/20 transition-all group relative overflow-hidden">
@@ -152,7 +80,7 @@ const DashboardPage: React.FC = () => {
               <>
 <StatCard 
     title="MCB Balance" 
-    value={bscBalance}
+    value={bscBalance} // ⚡ ใช้ค่าจาก Hook ที่รองรับเหรียญ 5M MCB บน BSC
     unit="MCB" 
     color="text-white" 
     icon="💎" 
