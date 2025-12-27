@@ -1,5 +1,5 @@
 import { client } from "../viemClient";
-import { ABIS, getADRS } from "../contracts"; // 🟢 แก้ไข: เปลี่ยน ADRS เป็น getADRS
+import { ABIS, getADRS } from "../contracts";
 
 /**
  * Fetches NFT balance for an account. 
