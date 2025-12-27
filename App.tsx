@@ -15,7 +15,7 @@ import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import SwapPage from './pages/SwapPage';
-import { MeeBotAIEditor } from './components/ImageEditor'; // Named Import ถูกต้องแล้ว
+import { MeeBotAIEditor } from './components/ImageEditor';
 
 const queryClient = new QueryClient();
 
