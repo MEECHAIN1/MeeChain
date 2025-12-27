@@ -11,6 +11,13 @@ const DashboardPage: React.FC = () => {
   const { balance: bscBalance, isLoading: isBscLoading } = useMCBBalance(); // 🟢 ดึงยอดจาก BSC/MeeChain อัตโนมัติ
   const chainId = useChainId();
   const isLoading = state.loadingStates.balances || isBscLoading;
+
+  // ตัวอย่างการเรียกใช้ใน DashboardPage.tsx
+<MeeBotAIEditor 
+  provider={window.ethereum} // สำหรับเชื่อมต่อกระเป๋า
+  connectedAccount={state.account} 
+  onMintSuccess={() => refreshBalances()} 
+/>
   
   useEffect(() => {
     if (state.account) {
