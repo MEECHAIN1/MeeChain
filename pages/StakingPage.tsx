@@ -100,19 +100,6 @@ const [rate, staked] = await Promise.all([
       setGlobalLoading(loadingKey, false);
     }
   };
-  
-    try {
-      let hash = "";
-      if (action === 'stake')
-        addEvent({
-          type: 'Claimed',
-          contract: 'Staking',
-          from: state.account,
-          amount: `Rewards Claimed`,
-          hash
-        });
-      }
-      
       triggerSuccessRitual();
       setStatus({ 
         type: 'success', 
