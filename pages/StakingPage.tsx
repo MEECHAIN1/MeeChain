@@ -64,11 +64,7 @@ const [rate, staked] = await Promise.all([
     }
   };
 
-// 1. ต้องประกาศสิ่งเหล่านี้ไว้ด้านบนสุดของ Component (ใต้บรรทัดที่ 12)
-  const { data: hash, writeContract } = useWriteContract();
-  const contracts = getADRS(chainId);
-
-  // 2. รวมร่าง handleAction ให้เป็นก้อนเดียวและเป็น async
+// 1. ตรวจสอบว่ามีการประกาศ async หน้าฟังก์ชัน
   const handleAction = async (action: 'stake' | 'claim') => {
     if (!state.account) {
       notify('error', 'กรุณาเชื่อมต่อ Neural Link ก่อนดำเนินการ ⚡');
@@ -77,24 +73,30 @@ const [rate, staked] = await Promise.all([
 
     const loadingKey = action === 'stake' ? 'staking' : 'claiming';
     setGlobalLoading(loadingKey, true);
-    setStatus({ 
-      type: 'loading', 
-      msg: action === 'stake' ? `กำลังหลอมรวม MCB...` : 'กำลังเก็บเกี่ยวรางวัล...' 
-    });
-
+    
     try {
-      // 🟢 เรียกใช้สัญญาจริง 0x8Da6... บน BSC
-      writeContract({
-        address: contracts.staking as `0x${string}`,
-        abi: ABIS.staking,
-        functionName: action === 'stake' ? 'stake' : 'getReward',
-        args: action === 'stake' ? [parseEther(stakeAmount)] : [],
-      });
+      // 2. ตอนนี้คุณจะสามารถใช้ await ได้โดยไม่ติด Error แล้วครับ
+      let hash = "";
+      if (action === 'stake') {
+        // เรียกใช้ฟังก์ชันส่งธุรกรรมจริงไปยังสัญญา
+        writeContract({
+          address: contracts.staking as `0x${string}`,
+          abi: ABIS.staking,
+          functionName: 'stake',
+          args: [parseEther(stakeAmount)],
+        });
+      } else {
+        writeContract({
+          address: contracts.staking as `0x${string}`,
+          abi: ABIS.staking,
+          functionName: 'getReward',
+        });
+      }
       
-      // การแจ้งเตือนความสำเร็จ (addEvent) จะย้ายไปอยู่ใน useEffect ของ isSuccess แทน
+      // หมายเหตุ: การบันทึก Log และ Success Ritual ให้ทำใน useEffect
     } catch (err) {
-      console.error("Ritual error:", err);
       setStatus({ type: 'error', msg: `❌ เกิดสัญญาณรบกวนในพิธีกรรม` });
+    } finally {
       setGlobalLoading(loadingKey, false);
     }
   };
