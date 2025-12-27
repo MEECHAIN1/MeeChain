@@ -44,7 +44,15 @@ const App: React.FC = () => {
                   <Route path="/debug" element={<TailwindTestPage />} />
                 </Routes>
               </main>
-
+               <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-4 text-slate-200">MeeBot AI Image Editor</h2>
+                  <ImageEditor 
+                    provider={provider} 
+                    connectedAccount={connectedAccount} 
+                    onConnectWallet={connectWallet}
+                    onMintSuccess={() => setRefreshKey(prev => prev + 1)}
+                  />
+                </div>
               <footer className="px-6 py-10 border-t border-white/5 bg-black/20">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="flex items-center gap-3 opacity-50 grayscale">
