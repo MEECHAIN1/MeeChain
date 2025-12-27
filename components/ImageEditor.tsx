@@ -5,7 +5,6 @@ import { DownloadIcon, MeeBotDefaultIcon, SpinnerIcon, UploadIcon, WandIcon } fr
 import { mintMeeBot } from '../src/lib/services/web3Service';
 import { ethers } from 'ethers';
 
-
 interface ImageEditorProps {
   provider: ethers.BrowserProvider | null;
   connectedAccount: string | null;
