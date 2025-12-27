@@ -4,6 +4,8 @@ import { useApp } from '../context/AppState';
 import { useMCBBalance } from '../hooks/useMCBBalance';
 import { NetworkSwitcher } from '../components/NetworkSwitcher';
 import { SkeletonStat, SkeletonRow } from '../components/SkeletonCard';
+import { MeeBotAIEditor } from '../components/ImageEditor'; 
+import { useApp } from '../context/AppState';
 
 const DashboardPage: React.FC = () => {
   const { state, events, refreshBalances } = useApp();
