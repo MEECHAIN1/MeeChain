@@ -64,6 +64,11 @@ const [rate, staked] = await Promise.all([
     }
   };
 
+// 1. ต้องประกาศสิ่งเหล่านี้ไว้ด้านบนสุดของ Component (ใต้บรรทัดที่ 12)
+  const { data: hash, writeContract } = useWriteContract();
+  const contracts = getADRS(chainId);
+
+  // 2. รวมร่าง handleAction ให้เป็นก้อนเดียวและเป็น async
   const handleAction = async (action: 'stake' | 'claim') => {
     if (!state.account) {
       notify('error', 'กรุณาเชื่อมต่อ Neural Link ก่อนดำเนินการ ⚡');
@@ -74,19 +79,22 @@ const [rate, staked] = await Promise.all([
     setGlobalLoading(loadingKey, true);
     setStatus({ 
       type: 'loading', 
-      msg: action === 'stake' ? `กำลังหลอมรวม MCB...` : 'กำลังเก็บเกี่ยวรางวัลจาก Vault...' 
+      msg: action === 'stake' ? `กำลังหลอมรวม MCB...` : 'กำลังเก็บเกี่ยวรางวัล...' 
     });
 
     try {
-      // 🟢 ส่งธุรกรรมจริงไปยัง Smart Contract
+      // 🟢 เรียกใช้สัญญาจริง 0x8Da6... บน BSC
       writeContract({
         address: contracts.staking as `0x${string}`,
         abi: ABIS.staking,
-        functionName: action === 'stake' ? 'stake' : 'getReward', // ชื่อฟังก์ชันในสัญญาของคุณ
+        functionName: action === 'stake' ? 'stake' : 'getReward',
         args: action === 'stake' ? [parseEther(stakeAmount)] : [],
       });
+      
+      // การแจ้งเตือนความสำเร็จ (addEvent) จะย้ายไปอยู่ใน useEffect ของ isSuccess แทน
     } catch (err) {
-      setStatus({ type: 'error', msg: `❌ เกิดสัญญาณรบกวนในพิธีกรรม: ${err}` });
+      console.error("Ritual error:", err);
+      setStatus({ type: 'error', msg: `❌ เกิดสัญญาณรบกวนในพิธีกรรม` });
       setGlobalLoading(loadingKey, false);
     }
   };
