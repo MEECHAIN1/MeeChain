@@ -17,6 +17,7 @@ import NetworkBanner from './components/NetworkBanner';
 import SwapPage from './pages/SwapPage';
 import { MeeBotAIEditor } from './components/ImageEditor';
 import { MeeBotDefaultIcon } from './components/Icons';
+import { gemini } from './functions/gemini';
 
 
 const queryClient = new QueryClient();
