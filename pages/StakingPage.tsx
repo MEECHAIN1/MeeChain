@@ -100,12 +100,6 @@ const [rate, staked] = await Promise.all([
       setGlobalLoading(loadingKey, false);
     }
   };
-      triggerSuccessRitual();
-      setStatus({ 
-        type: 'success', 
-        msg: action === 'stake' 
-          ? `🎉 ${stakeAmount} MCB Locked in Vault ✨` 
-
   }, [isConfirming, isSuccess]);
 
   return (
