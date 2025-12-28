@@ -26,13 +26,14 @@ const TypewriterText: React.FC<{ text: string, onComplete?: () => void }> = ({ t
 };
 
 const OraclePage: React.FC = () => {
-  const { state, notify, events } = useApp();
+  const { state, notify, events, setGlobalLoading } = useApp();
   const [messages, setMessages] = useState<{role: 'user' | 'oracle', text: string}[]>([
     { role: 'oracle', text: 'ยินดีต้อนรับสู่ Oracle Sanctum... ข้าคือผู้เฝ้ามอง Eternal Ledger แห่ง MeeChain เจ้ามีความประสงค์จะรับคำทำนายหรือปัญญาในเรื่องใด?' }
   ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const isTyping = state.loadingStates.oracle;
 
   const suggestions = [
     "ข้าควร Ascension (Stake) ตอนนี้เลยหรือไม่?",
@@ -56,7 +57,7 @@ const OraclePage: React.FC = () => {
     
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: textToSend }]);
-    setIsTyping(true);
+    setGlobalLoading('oracle', true);
     triggerCelestialRitual();
 
     // Enrich telemetry with recent events
@@ -68,10 +69,15 @@ const OraclePage: React.FC = () => {
       network: 'MeeChain Ritual (Polygon QuikNode)'
     };
 
-    const response = await askOracle(textToSend, telemetry);
-    
-    setMessages(prev => [...prev, { role: 'oracle', text: response }]);
-    setIsTyping(false);
+    try {
+      const response = await askOracle(textToSend, telemetry);
+      setMessages(prev => [...prev, { role: 'oracle', text: response }]);
+    } catch (err) {
+      console.error("Oracle call failed:", err);
+      setMessages(prev => [...prev, { role: 'oracle', text: "สายใย Neural Link ขัดข้อง... โปรดลองอีกครั้ง" }]);
+    } finally {
+      setGlobalLoading('oracle', false);
+    }
   };
 
   const handleShare = async (text: string) => {
