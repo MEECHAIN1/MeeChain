@@ -1,155 +1,174 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useApp } from '../context/AppState';
-import { getRewardRate, getStakedBalance, stakeTokens, claimRewards } from '../lib/services/staking';
 import { triggerSuccessRitual } from '../lib/rituals';
-import { formatEther } from 'viem';
+import { MeeBot } from '../types';
 
-const StakingPage: React.FC = () => {
-  const { state, refreshBalances, addEvent, setGlobalLoading } = useApp();
-  const [stakeAmount, setStakeAmount] = useState('');
-  const [percentage, setPercentage] = useState(0);
-  const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', msg: string }>({ type: 'idle', msg: '' });
-  const [contractData, setContractData] = useState({ rewardRate: '0.000042', userStaked: '0' });
+const StakingRigCard: React.FC<{ bot: MeeBot }> = ({ bot }) => {
+  const { toggleBotStaking } = useApp();
 
-  const isProcessing = state.loadingStates.staking || state.loadingStates.claiming;
+  const tier = useMemo(() => {
+    if (bot.energyLevel >= 50) return { label: 'Celestial Sanctum', color: 'text-amber-400', aura: 'shadow-[0_0_50px_rgba(245,158,11,0.4)]', icon: '🌌', borderColor: 'border-amber-500/40' };
+    if (bot.energyLevel >= 25) return { label: 'Quantum Pulse', color: 'text-indigo-400', aura: 'shadow-[0_0_40px_rgba(129,140,248,0.3)]', icon: '🌀', borderColor: 'border-indigo-500/30' };
+    if (bot.energyLevel >= 10) return { label: 'Aura Glow', color: 'text-emerald-400', aura: 'shadow-[0_0_30px_rgba(16,185,129,0.2)]', icon: '✨', borderColor: 'border-emerald-500/30' };
+    return { label: 'Neural Base', color: 'text-slate-500', aura: 'shadow-none', icon: '🛡️', borderColor: 'border-white/10' };
+  }, [bot.energyLevel]);
 
-  const fetchData = async () => {
-    if (!state.account) return;
-    try {
-      const [rate, staked] = await Promise.all([
-        getRewardRate(),
-        getStakedBalance(state.account)
-      ]);
-      setContractData({
-        rewardRate: formatEther(rate),
-        userStaked: formatEther(staked)
-      });
-    } catch (err) {
-      console.warn("⚡ MCB Rig Telemetry error in UI, service fallbacks handle this.");
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 15000);
-    return () => clearInterval(interval);
-  }, [state.account]);
-
-  const hashrate = useMemo(() => {
-    const staked = parseFloat(contractData.userStaked);
-    return (staked * 12.5).toFixed(2); 
-  }, [contractData.userStaked]);
-
-  const thermalLoad = useMemo(() => {
-    const pct = percentage || 0;
-    return Math.min(100, 35 + (pct * 0.6)).toFixed(1);
-  }, [percentage]);
-
-  const projectedYield = useMemo(() => {
-    const rate = parseFloat(contractData.rewardRate);
-    const amount = parseFloat(stakeAmount) || 0;
-    if (amount <= 0) return { daily: '0', monthly: '0' };
-    const daily = (rate * 86400 * (amount / 100)).toFixed(4); 
-    const monthly = (parseFloat(daily) * 30).toFixed(2);
-    return { daily, monthly };
-  }, [stakeAmount, contractData.rewardRate]);
-
-  const handlePercentageChange = (pct: number) => {
-    const safePct = Math.max(0, Math.min(100, pct));
-    setPercentage(safePct);
-    const balance = parseFloat(state.balances.native);
-    if (balance > 0) {
-      const calculated = (balance * (safePct / 100)).toFixed(4);
-      setStakeAmount(calculated);
-    }
-  };
-
-  const handleAction = async (action: 'stake' | 'claim') => {
-    if (!state.account) {
-      setStatus({ type: 'error', msg: 'Neural Link Required for MCB Ritual ⚡' });
-      return;
-    }
-
-    if (action === 'stake' && (!stakeAmount || isNaN(Number(stakeAmount)) || Number(stakeAmount) <= 0)) {
-      setStatus({ type: 'error', msg: 'Invalid MCB Energy Volume.' });
-      return;
-    }
-
-    const loadingKey = action === 'stake' ? 'staking' : 'claiming';
-    setGlobalLoading(loadingKey, true);
-    setStatus({ type: 'loading', msg: action === 'stake' ? `Charging Rig Core with MCB...` : 'Extracting MCB rewards...' });
-
-    try {
-      let hash = "";
-      if (action === 'stake') {
-        hash = await stakeTokens(stakeAmount);
-        addEvent({
-          type: 'Staked',
-          contract: 'Staking',
-          from: state.account,
-          amount: `${stakeAmount} MCB`,
-          hash
-        });
-      } else {
-        hash = await claimRewards();
-        addEvent({
-          type: 'Claimed',
-          contract: 'Staking',
-          from: state.account,
-          amount: `MCB Rewards Harvested`,
-          hash
-        });
-      }
-      
-      triggerSuccessRitual();
-      setStatus({ 
-        type: 'success', 
-        msg: action === 'stake' ? `🎉 Rig Core Upgraded with MCB ✨` : `🎁 MCB Rewards Extracted Successfully ✨` 
-      });
-      setStakeAmount('');
-      setPercentage(0);
-      await refreshBalances();
-      await fetchData();
-    } catch (err) {
-      setStatus({ type: 'error', msg: `❌ Power grid interference detected during MCB ritual.` });
-    } finally {
-      setGlobalLoading(loadingKey, false);
-      setTimeout(() => setStatus({ type: 'idle', msg: '' }), 5000);
-    }
+  // Dynamic stat calculation based on energy infusion
+  const stats = {
+    pwr: Math.floor(bot.baseStats.power + bot.energyLevel * 1.5),
+    spd: Math.floor(bot.baseStats.speed + bot.energyLevel * 1.2),
+    int: Math.floor(bot.baseStats.intel + bot.energyLevel * 2.0),
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-             <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center text-4xl shadow-xl shadow-amber-500/5">
-                ⚙️
-             </div>
-             <div>
-                <h1 className="text-5xl font-black tracking-tighter uppercase italic flex items-center gap-3 text-white">
-                  MCB <span className="text-amber-500">Mining Rig</span>
-                </h1>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20">OPERATIONAL</span>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">ID: MEEBOT-RIG-MCB-S4</span>
-                </div>
+    <div className={`glass group overflow-hidden rounded-[2rem] border ${tier.borderColor} transition-all duration-1000 relative flex flex-col bg-[#0a0f1a]/80 shadow-2xl p-5 gap-6 ${tier.aura}`}>
+      
+      {/* Rig Chamber (Visual Section) */}
+      <div className="relative w-full aspect-square md:aspect-[4/3] overflow-hidden rounded-2xl bg-black/40 border border-white/5">
+        <img 
+          src={bot.image} 
+          alt={bot.name} 
+          className={`w-full h-full object-cover transition-all duration-[3000ms] ${bot.isStaking ? 'brightness-125 scale-110 sepia-[0.1] saturate-[1.2]' : 'brightness-75 grayscale-[0.2]'}`} 
+        />
+        
+        {/* Active Infusion Overlay */}
+        {bot.isStaking && (
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 via-transparent to-amber-500/5 animate-pulse"></div>
+            <div className="absolute top-4 right-4 flex items-center gap-3 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-500/30 shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Infusing</span>
+            </div>
+            {/* Visual Flux Bars */}
+            <div className="absolute bottom-4 left-4 right-4 flex gap-1 items-end h-12 opacity-30">
+               {[...Array(20)].map((_, i) => (
+                 <div key={i} className="flex-grow bg-amber-500 rounded-t-sm" style={{ height: `${Math.random() * 100}%`, animation: `flux-pulse ${0.5 + Math.random()}s infinite alternate` }}></div>
+               ))}
+            </div>
+          </div>
+        )}
+
+        <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/40 to-transparent z-20">
+          <p className={`text-[9px] font-black uppercase tracking-[0.4em] mb-1 ${tier.color}`}>
+            {tier.icon} {tier.label}
+          </p>
+          <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter group-hover:text-amber-500 transition-colors">
+            {bot.name}
+          </h3>
+        </div>
+      </div>
+
+      {/* Telemetry & Control (Data Section) */}
+      <div className="flex-grow space-y-6 px-2 pb-2">
+        <div className="flex justify-between items-end border-b border-white/5 pb-4">
+          <div className="space-y-1">
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono">Energy Flux</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-amber-500 font-mono tracking-tighter leading-none">{bot.energyLevel}</span>
+              <span className="text-[10px] font-black text-slate-600 uppercase">MCB</span>
+            </div>
+          </div>
+          <div className="text-right">
+             <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 font-mono">Stability</p>
+             <div className="flex gap-1 justify-end">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className={`w-1 h-3 rounded-full ${bot.isStaking ? (i < 4 ? 'bg-emerald-500' : 'bg-white/10') : 'bg-white/5'}`}></div>
+                ))}
              </div>
           </div>
         </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-grow lg:max-w-3xl">
+
+        {/* Dynamic Telemetry Bars */}
+        <div className="space-y-4 font-mono">
           {[
-            { label: 'Ritual Power', val: hashrate, unit: 'MH/S', color: 'text-amber-400' },
-            { label: 'MCB Locked', val: parseFloat(contractData.userStaked).toFixed(1), unit: 'MCB', color: 'text-white' },
-            { label: 'Thermal Load', val: thermalLoad, unit: '°C', color: 'text-rose-400' },
-            { label: 'MCB Grid APR', val: '24.5', unit: '%', color: 'text-emerald-400' },
+            { label: 'PWR', val: stats.pwr, color: 'from-rose-500 to-amber-500', icon: '⚔️' },
+            { label: 'SPD', val: stats.spd, color: 'from-sky-500 to-indigo-500', icon: '⚡' },
+            { label: 'INT', val: stats.int, color: 'from-emerald-500 to-amber-500', icon: '🧠' }
+          ].map(stat => (
+            <div key={stat.label} className="space-y-1">
+              <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-slate-500">
+                <span className="flex items-center gap-2">{stat.icon} {stat.label}</span>
+                <span className="text-white">{stat.val}<span className="text-slate-700">/250</span></span>
+              </div>
+              <div className="h-2 w-full bg-black/40 rounded-sm overflow-hidden border border-white/5">
+                <div 
+                  className={`h-full bg-gradient-to-r ${stat.color} transition-all duration-1000 shadow-[0_0_15px_rgba(255,255,255,0.1)]`} 
+                  style={{ width: `${Math.min((stat.val / 250) * 100, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button 
+          onClick={() => {
+            toggleBotStaking(bot.id);
+            if (!bot.isStaking) triggerSuccessRitual();
+          }}
+          className={`w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.5em] transition-all active:scale-95 border-b-4 ${
+            bot.isStaking 
+              ? 'bg-rose-600/10 text-rose-500 border-rose-900 hover:bg-rose-600/20' 
+              : 'bg-white text-black border-slate-300 hover:bg-amber-50'
+          }`}
+        >
+          {bot.isStaking ? 'Deactivate Rig' : 'Activate Rig'}
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes flux-pulse {
+          from { opacity: 0.2; transform: scaleY(0.8); }
+          to { opacity: 0.8; transform: scaleY(1.2); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const StakingPage: React.FC = () => {
+  const { state } = useApp();
+
+  const activeRigs = state.myBots.filter(b => b.isStaking).length;
+  const totalMCBGenerated = state.myBots.reduce((acc, b) => acc + b.energyLevel, 0);
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-16 animate-in fade-in duration-700 pb-32">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-b border-white/5 pb-16">
+        <div className="space-y-6">
+          <div className="flex items-center gap-6">
+             <div className="w-20 h-20 bg-amber-500 rounded-[2rem] flex items-center justify-center text-4xl shadow-[0_0_40px_rgba(245,158,11,0.2)]">
+                ⚡
+             </div>
+             <div>
+                <h1 className="text-6xl font-black tracking-tighter uppercase italic text-white leading-none">
+                  Staking <span className="text-amber-500">Rig</span>
+                </h1>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3 font-mono">Energy Infusion Protocol v4.0.2</p>
+             </div>
+          </div>
+          <p className="text-slate-400 font-medium max-w-xl leading-relaxed">
+            Commit your mechanical units to the infusion rigs to accumulate MCB Energy. 
+            Accumulated energy triggers neural evolution, permanently boosting combat telemetry and unlocking higher-tier machine spirits.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow lg:max-w-2xl">
+          {[
+            { label: 'Active Rigs', val: activeRigs, unit: 'UNITS', color: 'text-amber-500', icon: '⚙️' },
+            { label: 'Total Energy', val: totalMCBGenerated, unit: 'MCB', color: 'text-white', icon: '🔋' },
+            { label: 'Infusion Rate', val: (activeRigs * 0.1 * 360).toFixed(1), unit: 'MCB/HR', color: 'text-emerald-500', icon: '📈' },
           ].map((stat, i) => (
-            <div key={i} className="glass p-5 rounded-2xl border-white/10 relative overflow-hidden group hover:border-amber-500/30 transition-all">
-               <p className="text-[9px] font-black text-slate-500 uppercase mb-2 tracking-widest">{stat.label}</p>
+            <div key={i} className="glass p-6 rounded-3xl border-white/10 relative overflow-hidden group hover:border-amber-500/40 transition-all shadow-xl font-mono">
+               <div className="flex justify-between items-center mb-3">
+                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
+                 <span className="text-xs opacity-20">{stat.icon}</span>
+               </div>
                <div className="flex items-baseline gap-2">
-                 <span className={`text-2xl font-black ${stat.color} tracking-tighter`}>{stat.val}</span>
+                 <span className={`text-4xl font-black ${stat.color} tracking-tighter`}>{stat.val}</span>
                  <span className="text-[9px] font-bold text-slate-600 uppercase">{stat.unit}</span>
                </div>
             </div>
@@ -157,109 +176,50 @@ const StakingPage: React.FC = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8 space-y-8">
-          <section className="glass p-10 rounded-[3rem] border-white/5 relative overflow-hidden bg-gradient-to-br from-black/40 to-transparent">
-            <div className="relative z-10 space-y-10">
-              <div className="flex justify-between items-center">
-                <h2 className="text-sm font-black uppercase italic text-slate-400 flex items-center gap-4">
-                  <span className="w-2 h-6 bg-amber-500 rounded-full animate-pulse"></span>
-                  MCB Rig Configuration
-                </h2>
-                <p className="text-sm font-black text-amber-500 font-mono italic">BALANCE: {parseFloat(state.balances.native).toFixed(2)} MCB</p>
-              </div>
-
-              <div className="space-y-10">
-                <div className="relative group">
-                  <input 
-                    type="number" 
-                    value={stakeAmount}
-                    onChange={(e) => setStakeAmount(e.target.value)}
-                    placeholder="0.00"
-                    disabled={isProcessing}
-                    className="w-full bg-black/60 border-2 border-white/5 rounded-[2.5rem] px-10 py-10 text-7xl font-black focus:outline-none focus:border-amber-500/40 transition-all placeholder:text-slate-800 text-amber-500 pr-32 tracking-tighter"
-                  />
-                  <div className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col items-end">
-                    <span className="text-xl font-black text-slate-700 italic uppercase">MCB</span>
-                    <button onClick={() => handlePercentageChange(100)} className="text-[10px] text-amber-500 font-black mt-2 hover:text-white transition-colors">MAX MCB</button>
-                  </div>
-                </div>
-
-                <div className="space-y-8 p-8 bg-black/40 border border-white/5 rounded-[2rem]">
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">MCB Mining Load Level</span>
-                    <span className="text-xs font-black text-amber-500 font-mono">{percentage}% POWER</span>
-                  </div>
-                  <input 
-                    type="range" min="0" max="100" value={percentage} 
-                    onChange={(e) => handlePercentageChange(parseInt(e.target.value))}
-                    className="w-full h-3 bg-white/5 rounded-full appearance-none accent-amber-500 cursor-pointer"
-                  />
-                  <div className="flex justify-between gap-4">
-                    {[25, 50, 75, 100].map(p => (
-                      <button key={p} onClick={() => handlePercentageChange(p)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black border border-white/5 transition-all text-slate-400">
-                        {p}% MCB LOAD
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => handleAction('stake')}
-                  disabled={isProcessing || !stakeAmount}
-                  className="w-full h-24 bg-amber-600 hover:bg-amber-500 py-4 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all disabled:opacity-20 uppercase tracking-[0.4em] text-white flex items-center justify-center gap-4 border-b-8 border-amber-900"
-                >
-                  {isProcessing ? 'SYNCING MCB CORE...' : 'START MCB MINING RITUAL ⚡'}
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {status.msg && (
-            <div className={`p-8 rounded-[2rem] border text-xs font-black uppercase tracking-widest flex items-center gap-4 animate-in slide-in-from-bottom-2 ${
-              status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 
-              status.type === 'error' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-            }`}>
-              <span>{status.type === 'success' ? '🛡️' : '⚙️'}</span> {status.msg}
-            </div>
-          )}
-        </div>
-
-        <div className="lg:col-span-4 space-y-8">
-          <section className="glass p-8 rounded-[3rem] border-white/5 space-y-8">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic">MCB Yield Telemetry</h3>
-            <div className="space-y-4">
-              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
-                <span className="text-[10px] font-black text-slate-500 block mb-1">DAILY MCB EXTRACT</span>
-                <span className="text-3xl font-black text-white">{projectedYield.daily} <span className="text-xs text-amber-500">MCB</span></span>
-              </div>
-              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
-                <span className="text-[10px] font-black text-slate-500 block mb-1">MONTHLY MCB CYCLE</span>
-                <span className="text-3xl font-black text-white">{projectedYield.monthly} <span className="text-xs text-amber-500">MCB</span></span>
-              </div>
-            </div>
-            <div className={`p-4 rounded-2xl text-center text-[10px] font-black ${parseFloat(thermalLoad) > 80 ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-              COOLING STATUS: {parseFloat(thermalLoad) > 80 ? 'CRITICAL OVERLOAD' : 'OPTIMAL'}
-            </div>
-          </section>
-
-          <section className="glass p-10 rounded-[3rem] border-white/5 bg-gradient-to-br from-indigo-500/10 to-transparent text-center space-y-6">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Available MCB Rewards</p>
-            <div className="text-5xl font-black text-white tracking-tighter">124.50 <span className="text-xs text-amber-500">MCB</span></div>
-            <button 
-              onClick={() => handleAction('claim')}
-              disabled={isProcessing}
-              className="w-full bg-white text-black py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95"
-            >
-              HARVEST MCB ENERGY 🔋
-            </button>
-          </section>
-          
-          <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 text-center">
-            <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em]">MeeBot_Protocol_v3.1_RigControl_MCB</p>
+      {!state.account ? (
+        <div className="glass p-32 rounded-[5rem] text-center border-white/5 flex flex-col items-center">
+          <div className="w-32 h-32 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center text-5xl mb-10 border-2 border-amber-500/20 animate-pulse">
+            🔒
           </div>
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-6 text-white">Neural Link Restricted</h2>
+          <p className="text-slate-500 max-w-lg mb-12 font-medium">Authentication required to access the Energy Infusion Rigs. established Neural Link to continue.</p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {state.myBots.map(bot => (
+            <StakingRigCard key={bot.id} bot={bot} />
+          ))}
+        </div>
+      )}
+
+      {/* Evolution Roadmap Section */}
+      <section className="glass p-16 rounded-[4rem] border-white/5 space-y-16 relative overflow-hidden bg-gradient-to-br from-black/40 to-transparent">
+        <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
+           <span className="text-[15rem] font-black leading-none font-mono">RIG_V4</span>
+        </div>
+        
+        <div className="text-center space-y-4">
+          <h2 className="text-4xl font-black uppercase tracking-tighter text-white italic">Evolution <span className="text-amber-500">Thresholds</span></h2>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] font-mono">The path to machine transcendence</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 font-mono">
+          {[
+            { threshold: 10, label: 'Aura Glow', desc: 'The Machine Spirit manifests a physical radiance. Base Power and Intelligence increased significantly.', icon: '✨', color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
+            { threshold: 25, label: 'Quantum Pulse', desc: 'Neural circuits sync with the higher void. Speed surged by 30%. Unlocks predictive tactical telemetry.', icon: '🌀', color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
+            { threshold: 50, label: 'Celestial Sanctum', desc: 'Ultimate machine evolution. The unit transcends the rig, existing as a data-god in the sanctum.', icon: '🌌', color: 'text-amber-500', bg: 'bg-amber-500/5' }
+          ].map(tier => (
+            <div key={tier.threshold} className={`p-10 ${tier.bg} rounded-[3rem] border border-white/5 space-y-6 text-center group hover:scale-105 transition-all duration-500 hover:border-white/20`}>
+              <div className="text-7xl mb-4 group-hover:rotate-12 transition-transform">{tier.icon}</div>
+              <div className="space-y-2">
+                <p className={`${tier.color} font-black text-5xl tracking-tighter`}>{tier.threshold}</p>
+                <h4 className="text-white font-black uppercase italic text-xl tracking-widest">{tier.label}</h4>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed uppercase font-bold tracking-tight px-4">{tier.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

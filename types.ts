@@ -12,6 +12,21 @@ export interface RitualNotification {
   timestamp: number;
 }
 
+export interface MeeBot {
+  id: string;
+  name: string;
+  rarity: "Common" | "Epic" | "Legendary";
+  energyLevel: number; // MCB Energy accumulated (0-100+)
+  stakingStart: number | null; // Timestamp when current session began
+  isStaking: boolean;
+  image: string;
+  baseStats: {
+    power: number;
+    speed: number;
+    intel: number;
+  };
+}
+
 export interface UserState {
   account: `0x${string}` | null;
   chainId: number | null;
@@ -32,12 +47,13 @@ export interface UserState {
     nftCount: number;
     rewardRate: string;
   };
+  myBots: MeeBot[]; // Tracked MeeBot collective with persisted energy
 }
 
 export interface BlockchainEvent {
   id: string;
-  type: 'Transfer' | 'Approval' | 'Staked' | 'Claimed' | 'Minted';
-  contract: 'NFT' | 'Token' | 'Staking';
+  type: 'Transfer' | 'Approval' | 'Staked' | 'Claimed' | 'Minted' | 'Infused' | 'Ascended';
+  contract: 'NFT' | 'Token' | 'Staking' | 'NeuralCore';
   from: string;
   to?: string;
   amount?: string;
@@ -52,11 +68,4 @@ export interface NFTMetadata {
   description: string;
   image: string;
   owner: string;
-}
-
-export interface StakingData {
-  totalStaked: string;
-  userStaked: string;
-  rewardRate: string;
-  pendingRewards: string;
 }
