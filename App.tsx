@@ -28,14 +28,12 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
-  // Note: Connection check logs were successful as per user feedback
-  // Proceeding with immediate render to avoid UI lockups.
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
-            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative">
+            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">
               {/* UI Feedback Overlays */}
               <GlobalLoadingOverlay />
               <RitualToasts />
@@ -58,19 +56,19 @@ const App: React.FC = () => {
                 </Routes>
               </main>
 
-              <footer className="px-6 py-12 border-t border-white/5 bg-black/40">
+              <footer className="px-6 py-12 border-t border-white/5 bg-black/40 mt-10">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                   <div className="flex items-center gap-4 opacity-40 hover:opacity-100 transition-opacity">
-                    <div className="w-10 h-10 meebot-gradient rounded-xl flex items-center justify-center shadow-lg">
-                      <span className="text-white font-black text-lg italic">M</span>
+                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg">
+                      <span className="text-black font-black text-lg italic">M</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-black text-xs tracking-tighter uppercase">MEEBOT_PROTOCOL</span>
-                      <span className="text-[8px] font-mono text-slate-500">VERSION_3.1.4_STABLE</span>
+                      <span className="font-black text-[10px] tracking-tighter uppercase text-white">MEEBOT_PROTOCOL</span>
+                      <span className="text-[8px] font-mono text-slate-500">VERSION_4.0.5_MOBILE_STABLE</span>
                     </div>
                   </div>
                   
-                  <div className="flex gap-8 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
+                  <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
                     <a href="#" className="hover:text-amber-500 transition-colors">Nodes</a>
                     <a href="#" className="hover:text-amber-500 transition-colors">Security</a>
                     <a href="#" className="hover:text-amber-500 transition-colors">Ledger</a>

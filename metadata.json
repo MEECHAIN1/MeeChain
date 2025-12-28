@@ -1,6 +1,6 @@
 {
   "name": "MeeChain MeeBot",
-  "description": "A high-performance blockchain dashboard and interaction suite for the MeeChain ecosystem, featuring NFT galleries, token staking, and real-time event logging.",
+  "description": "A high-performance blockchain dashboard for the MeeChain ecosystem with advanced responsiveness and AI-powered Oracle integration.",
   "requestFramePermissions": [
     "camera"
   ]

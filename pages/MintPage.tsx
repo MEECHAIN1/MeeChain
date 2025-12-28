@@ -12,10 +12,6 @@ const MintPage: React.FC = () => {
   const [isMinting, setIsMinting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  /**
-   * Applies the "MeeBot Spirit" branding signature to the asset.
-   * Inspired by the clean, high-end 3D collective look.
-   */
   const applyWatermark = (base64Image: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -29,31 +25,25 @@ const MintPage: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return resolve(base64Image);
 
-        // 1. Draw base asset
         ctx.drawImage(img, 0, 0, 1024, 1024);
 
-        // 2. Clear footer area for branding (matching Image 2's clean bottom look)
-        // We add a subtle soft overlay instead of a heavy block
         const gradient = ctx.createLinearGradient(0, 850, 0, 1024);
         gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 850, 1024, 174);
 
-        // 3. "MEECHAIN" Bold Text
         ctx.font = "900 80px 'Inter', sans-serif";
-        ctx.fillStyle = "#1e293b"; // Dark slate for that high-end look
+        ctx.fillStyle = "#1e293b";
         ctx.textAlign = "center";
         ctx.letterSpacing = "10px";
         ctx.fillText("MEECHAIN", 512, 940);
 
-        // 4. "Meebot" Signature Script (Simulated with italic serif)
         ctx.font = "italic 700 48px 'Georgia', serif";
-        ctx.fillStyle = "#f43f5e"; // Rose/Lotus Pink
+        ctx.fillStyle = "#f43f5e";
         ctx.textAlign = "center";
         ctx.fillText("Meebot Spirit", 580, 970);
 
-        // 5. Technical Metadata (Small, clean)
         ctx.font = "600 12px 'JetBrains Mono', monospace";
         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
         ctx.textAlign = "center";
@@ -75,20 +65,12 @@ const MintPage: React.FC = () => {
     
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      // Updated prompt to focus on the "Cute 3D Lotus" aesthetic from Image 2
       const enhancedPrompt = `A cute, high-quality 3D stylized MeeBot robot holding a glowing pink lotus flower. ${prompt}. Soft clay-like 3D render, vibrant colorful geometric background elements, cinematic soft lighting, 8k resolution, octane render, toy-like aesthetic, friendly eyes, highly detailed, clean design, bright colors.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: { 
-          parts: [{ text: enhancedPrompt }] 
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          }
-        }
+        contents: { parts: [{ text: enhancedPrompt }] },
+        config: { imageConfig: { aspectRatio: "1:1" } }
       });
 
       let rawImage = "";
@@ -110,7 +92,6 @@ const MintPage: React.FC = () => {
       }
     } catch (err) {
       notify('error', 'Neural connection lost. Please try again.');
-      console.error(err);
     } finally {
       setIsGenerating(false);
       setGlobalLoading('general', false);
@@ -149,83 +130,81 @@ const MintPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <header className="text-center space-y-4">
-        <h1 className="text-7xl font-black tracking-tighter uppercase italic text-white">
+    <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <header className="text-center space-y-2 sm:space-y-4">
+        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter uppercase italic text-white leading-none">
           Spirit <span className="text-rose-500">Manifestor</span>
         </h1>
-        <div className="flex items-center justify-center gap-4">
-          <span className="h-[1px] w-20 bg-rose-500/20"></span>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.8em]">Invoke your Machine Guardian</p>
-          <span className="h-[1px] w-20 bg-rose-500/20"></span>
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
+          <span className="h-[1px] w-12 sm:w-20 bg-rose-500/20"></span>
+          <p className="text-[8px] sm:text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] sm:tracking-[0.8em]">Invoke your Machine Guardian</p>
+          <span className="h-[1px] w-12 sm:w-20 bg-rose-500/20"></span>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <div className="space-y-8">
-          <section className="glass p-10 rounded-[3rem] border-white/5 space-y-8 relative overflow-hidden group">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div className="space-y-6 sm:space-y-8">
+          <section className="glass p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] border-white/5 space-y-6 sm:space-y-8 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-              <span className="text-9xl font-black">LOTUS</span>
+              <span className="text-6xl sm:text-9xl font-black">LOTUS</span>
             </div>
             
-            <div className="space-y-2 relative">
-              <h2 className="text-xs font-black uppercase text-slate-400 flex items-center gap-3 tracking-widest">
-                <span className="w-2 h-6 bg-rose-500 rounded-full animate-pulse"></span>
+            <div className="space-y-1 sm:space-y-2 relative">
+              <h2 className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-3 tracking-widest">
+                <span className="w-2 h-4 sm:h-6 bg-rose-500 rounded-full animate-pulse"></span>
                 Spirit Characteristics
               </h2>
-              <p className="text-[10px] text-slate-600 font-bold italic uppercase">จิตวิญญาณแห่ง MeeBot ของคุณเป็นอย่างไร?</p>
+              <p className="text-[8px] sm:text-[10px] text-slate-600 font-bold italic uppercase">จิตวิญญาณแห่ง MeeBot ของคุณเป็นอย่างไร?</p>
             </div>
 
             <textarea 
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="เช่น: นักรบมังกรผู้อ่อนโยน, ผู้เฝ้าประตูมิติแห่งดวงดาว, หรือหุ่นยนต์พฤกษา..."
-              className="w-full h-56 bg-black/40 border-2 border-white/5 rounded-[2rem] p-8 text-white focus:outline-none focus:border-rose-500/50 transition-all placeholder:text-slate-800 italic text-xl leading-relaxed shadow-inner"
+              placeholder="เช่น: นักรบมังกรผู้อ่อนโยน, ผู้เฝ้าประตูมิติแห่งดวงดาว..."
+              className="w-full h-40 sm:h-56 bg-black/40 border-2 border-white/5 rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 text-white focus:outline-none focus:border-rose-500/50 transition-all placeholder:text-slate-800 italic text-lg sm:text-xl leading-relaxed shadow-inner"
               disabled={isGenerating || isMinting}
             />
             
             <button 
               onClick={generateMeeBot}
               disabled={isGenerating || !prompt.trim() || isMinting}
-              className="w-full bg-gradient-to-r from-rose-600 to-orange-500 hover:scale-[1.02] py-6 rounded-3xl font-black text-xs uppercase tracking-[0.5em] shadow-2xl transition-all disabled:opacity-20 border-b-4 border-rose-900 group relative overflow-hidden"
+              className="w-full bg-rose-500 hover:bg-rose-400 py-5 sm:py-6 rounded-2xl sm:rounded-3xl font-black text-[10px] sm:text-xs uppercase tracking-[0.4em] sm:tracking-[0.5em] shadow-2xl transition-all disabled:opacity-20 border-b-4 border-rose-900 flex items-center justify-center gap-3 sm:gap-4 text-white"
             >
-              <div className="relative z-10 flex items-center justify-center gap-4 text-white">
-                {isGenerating ? (
-                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Invoking Spirit...</span>
-                   </>
-                ) : (
-                  <>
-                    <span>Manifest Spirit</span>
-                    <span className="group-hover:rotate-45 transition-transform">🌸</span>
-                  </>
-                )}
-              </div>
+              {isGenerating ? (
+                 <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Invoking...</span>
+                 </>
+              ) : (
+                <>
+                  <span>Manifest Spirit</span>
+                  <span className="text-lg">🌸</span>
+                </>
+              )}
             </button>
           </section>
 
-          <div className="p-8 bg-rose-500/5 border border-rose-500/10 rounded-[2.5rem] flex gap-6 items-center">
-            <div className="text-4xl">🧘‍♂️</div>
+          <div className="p-6 sm:p-8 bg-rose-500/5 border border-rose-500/10 rounded-[1.5rem] sm:rounded-[2.5rem] flex gap-4 sm:gap-6 items-center">
+            <div className="text-3xl sm:text-4xl">🧘‍♂️</div>
             <div className="space-y-1">
-              <p className="text-[10px] text-rose-500 font-black uppercase tracking-widest">Divine Verification</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                ทุกยูนิตจะได้รับตราประทับ "MeeBot Spirit" เพื่อยืนยันความบริสุทธิ์ของจิตวิญญาณก่อนบันทึกลงใน Eternal Ledger
+              <p className="text-[9px] text-rose-500 font-black uppercase tracking-widest">Divine Verification</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 leading-relaxed font-medium uppercase italic">
+                ทุกยูนิตจะได้รับตราประทับ "MeeBot Spirit" ยืนยันความบริสุทธิ์
               </p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="glass aspect-square rounded-[4rem] border-white/5 overflow-hidden flex items-center justify-center relative group shadow-2xl bg-black/40">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="glass aspect-square rounded-[2rem] sm:rounded-[4rem] border-white/5 overflow-hidden flex items-center justify-center relative group shadow-2xl bg-black/40">
             {generatedImage ? (
               <div className="w-full h-full relative">
                 <img src={generatedImage} alt="Preview" className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-1000" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-12">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6 sm:p-12">
                    <div className="flex justify-between items-end">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Ready to Ascend</span>
-                        <h4 className="text-white font-black text-2xl italic uppercase tracking-tighter">Verified Spirit Specimen</h4>
+                        <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Ready</span>
+                        <h4 className="text-white font-black text-lg sm:text-2xl italic uppercase tracking-tighter">Verified specimen</h4>
                       </div>
                       <button 
                         onClick={() => {
@@ -234,7 +213,7 @@ const MintPage: React.FC = () => {
                           link.href = generatedImage;
                           link.click();
                         }}
-                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md p-5 rounded-2xl text-white transition-all shadow-xl"
+                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md p-4 sm:p-5 rounded-xl sm:rounded-2xl text-white transition-all shadow-xl"
                       >
                         📥
                       </button>
@@ -242,36 +221,34 @@ const MintPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-center space-y-6 opacity-20">
-                <div className="text-9xl animate-pulse">🌸</div>
+              <div className="text-center space-y-4 sm:space-y-6 opacity-20">
+                <div className="text-7xl sm:text-9xl animate-pulse">🌸</div>
                 <div className="space-y-2">
-                  <p className="text-[11px] font-black uppercase tracking-[1em] pl-4">Awaiting Signal</p>
-                  <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Invoke your guardian to see result</p>
+                  <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.5em] sm:tracking-[1em] pl-4">Awaiting</p>
+                  <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Invoke to visualize</p>
                 </div>
               </div>
             )}
             <canvas ref={canvasRef} className="hidden" />
           </div>
 
-          <div className="space-y-4">
-            <button 
-              onClick={handleMint}
-              disabled={!generatedImage || isMinting}
-              className="w-full h-24 bg-white text-slate-900 py-6 rounded-[2rem] font-black text-sm uppercase tracking-[0.6em] transition-all disabled:opacity-5 disabled:cursor-not-allowed hover:bg-rose-50 active:scale-95 flex items-center justify-center gap-6 shadow-2xl"
-            >
-              {isMinting ? (
-                <>
-                  <div className="w-6 h-6 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Ascending...</span>
-                </>
-              ) : (
-                <>
-                  <span>Permanent Ascension</span>
-                  <span className="text-2xl">🛡️</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button 
+            onClick={handleMint}
+            disabled={!generatedImage || isMinting}
+            className="w-full h-16 sm:h-24 bg-white text-black py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] font-black text-xs sm:text-sm uppercase tracking-[0.4em] sm:tracking-[0.6em] transition-all disabled:opacity-5 disabled:cursor-not-allowed flex items-center justify-center gap-4 sm:gap-6 shadow-2xl border-b-4 sm:border-b-8 border-slate-300"
+          >
+            {isMinting ? (
+              <>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                <span>Ascending...</span>
+              </>
+            ) : (
+              <>
+                <span>Permanent Ascension</span>
+                <span className="text-xl sm:text-2xl">🛡️</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
