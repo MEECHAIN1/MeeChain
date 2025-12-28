@@ -1,26 +1,15 @@
-import { createPublicClient, http } from 'viem';
-import { mainnet, bsc } from 'viem/chains';
 
-/** 🟢 นิยาม MeeChain ให้สมบูรณ์ */
-export const meechain = {
-  id: 1337, // หรือ ID จริงของ MeeChain
-  name: 'MeeChain',
-  nativeCurrency: { decimals: 18, name: 'MeeChain Bot', symbol: 'MCB' },
-  rpcUrls: {
-    public: { http: ['https://shape-mainnet.g.alchemy.com/v2/J1HfoMSvISZdnANVlkTA6'] },
-    default: { http: ['https://mcb-chain.bolt.host'] },
-  },
-};
+import { createPublicClient, http, fallback } from 'viem';
+import { meechain } from './constants/chains';
 
-/** 🟢 ฟังก์ชันดึง Client แบบ Dynamic ตาม Chain ID */
-export const getClient = (chainId?: number) => {
-  const isBSC = chainId === 56;
-  return createPublicClient({
-    // ถ้าเป็น 56 ให้เลือก BSC ถ้าไม่ใช่ให้เลือก MeeChain
-chain: isBSC ? bsc : meechain as any,
-    transport: http(isBSC ? 'https://bsc-dataseed.binance.org/' : meechain.rpcUrls.public.http[0]),
-  });
-};
+const RPC_URL = "https://dimensional-newest-film.matic.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033";
 
-/** 🔴 จุดสำคัญ: ส่งออก 'client' ตัวหลักเพื่อป้องกัน Error ตอน Build */
-export const client = getClient();
+export { meechain };
+
+export const client = createPublicClient({
+  chain: meechain,
+  transport: fallback([
+    http(RPC_URL),
+    http("https://polygon-rpc.com")
+  ]),
+});

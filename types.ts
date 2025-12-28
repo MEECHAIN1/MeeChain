@@ -17,10 +17,13 @@ export interface UserState {
   chainId: number | null;
   isConnecting: boolean;
   notifications: RitualNotification[];
+  galleryFilter: string;
   loadingStates: {
     balances: boolean;
     staking: boolean;
     claiming: boolean;
+    gallery: boolean;
+    oracle: boolean;
     general: boolean;
   };
   balances: {

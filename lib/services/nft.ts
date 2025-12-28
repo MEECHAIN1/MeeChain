@@ -1,15 +1,14 @@
 import { client } from "../viemClient";
-import { ABIS, getADRS } from "../contracts"; // 🟢 แก้ไข: เปลี่ยน ADRS เป็น getADRS
+import { ABIS, ADRS } from "../contracts";
 
 /**
  * Fetches NFT balance for an account. 
- * รองรับ Multi-chain โดยส่ง chainId เข้ามาด้วย
+ * If the contract is not deployed or returns an error, returns a mock balance.
  */
-export async function getNFTBalance(account: `0x${string}`, chainId?: number): Promise<bigint> {
-  const contracts = getADRS(chainId); // 🟢 ดึง Address ตาม Chain ปัจจุบัน
+export async function getNFTBalance(account: `0x${string}`): Promise<bigint> {
   try {
     const result = await client.readContract({
-      address: contracts.nft, // 🟢 แก้ไข: จาก ADRS.nft เป็น contracts.nft
+      address: ADRS.nft,
       abi: ABIS.nft,
       functionName: "balanceOf",
       args: [account],
@@ -18,16 +17,15 @@ export async function getNFTBalance(account: `0x${string}`, chainId?: number): P
     if (result === undefined || result === null) return 0n;
     return BigInt(result as any);
   } catch (error) {
-    console.warn("NFT balanceOf failed. Using mock fallback.");
-    return 3n; // Mock balance ที่คุณเห็น 3 ITEMS ใน Dashboard
+    console.warn("NFT balanceOf failed (likely contract not deployed). Using mock fallback.");
+    return 3n; 
   }
 }
 
-export async function getNFTOwner(tokenId: bigint, chainId?: number): Promise<`0x${string}`> {
-  const contracts = getADRS(chainId);
+export async function getNFTOwner(tokenId: bigint): Promise<`0x${string}`> {
   try {
     const owner = await client.readContract({
-      address: contracts.nft, // 🟢 แก้ไข: ใช้ contracts.nft
+      address: ADRS.nft,
       abi: ABIS.nft,
       functionName: "ownerOf",
       args: [tokenId],
@@ -38,16 +36,15 @@ export async function getNFTOwner(tokenId: bigint, chainId?: number): Promise<`0
   }
 }
 
-export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: bigint, hash: string) => void, chainId?: number) {
-  const contracts = getADRS(chainId);
+export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: bigint, hash: string) => void) {
   try {
     return client.watchContractEvent({
-      address: contracts.nft, // 🟢 แก้ไข: ใช้ contracts.nft
+      address: ADRS.nft,
       abi: ABIS.nft,
       eventName: "Transfer",
       onLogs: (logs) => {
         logs.forEach((log) => {
-          const { from, to, tokenId } = log.args as any;
+          const { from, to, tokenId } = log.args;
           if (from && to && tokenId !== undefined) {
             onLog(from, to, tokenId, log.transactionHash);
           }
