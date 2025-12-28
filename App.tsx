@@ -28,17 +28,19 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
+  // Note: Connection check logs were successful as per user feedback
+  // Proceeding with immediate render to avoid UI lockups.
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
             <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative">
-              {/* Overlay elements */}
+              {/* UI Feedback Overlays */}
               <GlobalLoadingOverlay />
               <RitualToasts />
               
-              {/* Critical Connection Alerts */}
+              {/* Connection Status Banner */}
               <NetworkBanner />
               
               <Navbar />

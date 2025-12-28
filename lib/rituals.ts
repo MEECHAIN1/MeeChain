@@ -1,30 +1,13 @@
 
 /**
  * Rituals Module
- * Handles success celebrations and visual/audio feedback rituals.
+ * Handles success celebrations and visual feedback rituals.
+ * Audio removed to prevent "source not found" errors in restricted environments.
  */
 
 declare const confetti: any;
 
-// Ethereal Sound URLs (Publicly accessible assets for the ritual)
-const SOUNDS = {
-  success: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', // Crystal Chime
-  celestial: 'https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3', // Soft Synth Pad
-  warp: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3' // Energy Pulse
-};
-
-const playSound = (url: string) => {
-  try {
-    const audio = new Audio(url);
-    audio.volume = 0.3;
-    audio.play();
-  } catch (e) {
-    console.warn("Ritual Audio muted by system restrictions.");
-  }
-};
-
 export const triggerSuccessRitual = () => {
-  playSound(SOUNDS.success);
   if (typeof confetti !== 'undefined') {
     confetti({
       particleCount: 150,
@@ -36,15 +19,15 @@ export const triggerSuccessRitual = () => {
 };
 
 export const triggerCelestialRitual = () => {
-  playSound(SOUNDS.celestial);
+  // Visual pulse logic can be added here if needed
+  console.log("Celestial Ritual Triggered");
 };
 
 export const triggerWarpRitual = () => {
-  playSound(SOUNDS.warp);
+  console.log("Warp Ritual Triggered");
 };
 
 export const triggerMintRitual = () => {
-  playSound(SOUNDS.success);
   if (typeof confetti !== 'undefined') {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;

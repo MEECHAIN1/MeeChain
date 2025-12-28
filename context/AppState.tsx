@@ -23,6 +23,8 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const PERSISTENCE_KEY = 'meebot_gallery_filter';
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address, chainId } = useAccount();
   const { connectAsync, connectors } = useConnect();
@@ -33,7 +35,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     chainId: null,
     isConnecting: false,
     notifications: [],
-    galleryFilter: 'All',
+    galleryFilter: localStorage.getItem(PERSISTENCE_KEY) || 'All',
     loadingStates: {
       balances: false,
       staking: false,
@@ -77,6 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setGalleryFilter = useCallback((filter: string) => {
     setState(prev => ({ ...prev, galleryFilter: filter }));
+    localStorage.setItem(PERSISTENCE_KEY, filter);
   }, []);
 
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
