@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
+    "@google/generative-ai": "^0.24.1",
     "@tanstack/react-query": "^5.66.0",
     "@wagmi/core": "^3.0.1",
     "react": "^19.0.0",
