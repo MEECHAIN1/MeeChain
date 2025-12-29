@@ -6,6 +6,7 @@ import { Share2, Send, Cpu, Sparkles, MessageSquare } from 'lucide-react';
 
 const TypewriterText: React.FC<{ text: string, onComplete?: () => void }> = ({ text, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
+  const hasCompleted = useRef(false);
   
   useEffect(() => {
     let i = 0;
