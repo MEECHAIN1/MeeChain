@@ -3,10 +3,10 @@ import { Chain } from 'viem';
 
 export const meechain: Chain = {
   id: 56,
-  name: 'MeeChain Ritual (bsc)',
+  name: 'MeeChain Ritual (ฺฺฺBSC)',
   nativeCurrency: {
     decimals: 18,
-    name: 'meechain',
+    name: 'MeeChain',
     symbol: 'MCB',
   },
   rpcUrls: {
