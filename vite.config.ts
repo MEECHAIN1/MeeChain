@@ -19,6 +19,15 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       }
+      rollupOptions: { 
+         output: { 
+         manualChunks: { 
+           'vendor-react': ['react', 'react-dom', 'react-router-dom'], 
+           'vendor-web3': ['wagmi', 'viem', '@wagmi/core', '@tanstack/react-query'], 
+           'vendor-ui': ['framer-motion', 'lucide-react', 'canvas-confetti'], 
+           'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          }
+       }
     };
 });
 
