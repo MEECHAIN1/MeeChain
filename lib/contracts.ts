@@ -10,10 +10,10 @@ const DEPLOYED_STAKING = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0" as const;
 const DEPLOYED_SWAP = "0xB7f8BC63BbcaD8723ad05c014f34A1B3a41E9b0b" as const;
 
 export const ADRS = {
-  nft: (process.env.VITE_NFT_ADDRESS as `0x${string}`) || DEPLOYED_NFT,
-  token: (process.env.VITE_TOKEN_ADDRESS as `0x${string}`) || DEPLOYED_TOKEN,
-  staking: (process.env.VITE_STAKING_ADDRESS as `0x${string}`) || DEPLOYED_STAKING,
-  swap: (process.env.VITE_SWAP_ADDRESS as `0x${string}`) || DEPLOYED_SWAP,
+  nft: (import.meta.env.VITE_NFT_ADDRESS as `0x${string}`) || DEPLOYED_NFT,
+  token: (import.meta.env.VITE_TOKEN_ADDRESS as `0x${string}`) || DEPLOYED_TOKEN,
+  staking: (import.meta.env.VITE_STAKING_ADDRESS as `0x${string}`) || DEPLOYED_STAKING,
+  swap: (import.meta.env.VITE_SWAP_ADDRESS as `0x${string}`) || DEPLOYED_SWAP,
 };
 
 export const ABIS = {
