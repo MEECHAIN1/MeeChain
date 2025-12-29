@@ -10,6 +10,6 @@ export const client = createPublicClient({
   chain: meechain,
   transport: fallback([
     http(RPC_URL),
-    http("https://polygon-rpc.com")
+    http("https://bscscan.com")
   ]),
 });
