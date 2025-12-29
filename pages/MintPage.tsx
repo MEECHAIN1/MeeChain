@@ -54,7 +54,8 @@ const MintPage: React.FC = () => {
     
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const enhancedPrompt = `A high-quality 3D render of a mechanical MeeBot robot, ${prompt}, cyberpunk aesthetic, neon accents, floating in a digital void, cinematic lighting, 8k resolution.`;
+      // Optimized prompt to match the aesthetic of "MeeChain Spirit" from user image 1
+      const enhancedPrompt = `A cute 3D chibi-style mechanical MeeBot robot, large circular glowing cyan blue eyes, white metallic body, ${prompt}, holding a vibrant glowing pink lotus flower in its mechanical palm, wearing a red traditional sash with a gold medallion, standing in a dreamy space nebula with floating planets and abstract shapes, toy photography style, smooth clay-like textures, cinematic lighting, vibrant 8k render.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -97,7 +98,6 @@ const MintPage: React.FC = () => {
       await new Promise(r => setTimeout(r, 2000));
       const tokenId = Math.floor(Math.random() * 9000) + 1000;
       
-      // Add the bot to the local collection state
       const newBot = {
         id: tokenId.toString(),
         name: generateMeeBotName(tokenId.toString()),

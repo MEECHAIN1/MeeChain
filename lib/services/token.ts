@@ -1,5 +1,5 @@
 
-import { client } from "../lib/viemClient";
+import { client } from "../viemClient";
 import { ABIS, ADRS } from "../contracts";
 import { parseEther } from "viem";
 

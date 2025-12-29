@@ -1,6 +1,6 @@
 
 import { http, createConfig } from 'wagmi';
-import { meechain } from '../lib/viemClient';
+import { meechain } from './viemClient';
 import { injected, walletConnect } from 'wagmi/connectors';
 
 const metadata = {
