@@ -6,7 +6,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from '../lib/viemClient';
 import { getNFTBalance } from '../lib/services/nft';
 import { getTokenBalance } from '../lib/services/token';
-import { getRewardRate } from '../lib/services/staking';
+import { getRewardRate, getStakedBalance } from '../lib/services/staking';
 import { generateMeeBotName } from '../lib/meeBotNames';
 
 interface AppContextType {
@@ -21,6 +21,7 @@ interface AppContextType {
   notify: (type: RitualNotification['type'], message: string) => void;
   removeNotification: (id: string) => void;
   toggleBotStaking: (botId: string) => void;
+  addBot: (bot: MeeBot) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -51,6 +52,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       balances: {
         native: '0',
         token: '0',
+        staked: '0',
         nftCount: 0,
         rewardRate: '0'
       },
@@ -60,66 +62,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
-  // Persist bots to local storage
   useEffect(() => {
-    if (state.myBots.length > 0) {
-      localStorage.setItem(BOTS_STORAGE_KEY, JSON.stringify(state.myBots));
-    }
+    localStorage.setItem(BOTS_STORAGE_KEY, JSON.stringify(state.myBots));
   }, [state.myBots]);
 
-  // Initialize mock bots when account connects if collective is empty
   useEffect(() => {
-    if (address && state.myBots.length === 0) {
-      const initialBots: MeeBot[] = Array.from({ length: 6 }).map((_, i) => {
-        const id = (2025 + i).toString();
-        const rarity = i % 5 === 0 ? "Legendary" : i % 3 === 0 ? "Epic" : "Common";
-        return {
-          id,
-          name: generateMeeBotName(id),
-          rarity,
-          energyLevel: 0,
-          stakingStart: null,
-          isStaking: false,
-          image: `https://picsum.photos/seed/meebot_rig_${id}/1024/1024`,
-          baseStats: {
-            power: 40 + Math.random() * 20,
-            speed: 40 + Math.random() * 20,
-            intel: 40 + Math.random() * 20
-          }
-        };
-      });
-      setState(prev => ({ ...prev, account: address as `0x${string}`, myBots: initialBots }));
-    } else if (address) {
+    if (address) {
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
+      // If we have no bots yet, generate some starters (only once)
+      if (state.myBots.length === 0) {
+        const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
+          const id = (3600 + i).toString();
+          const rarity = i === 0 ? "Epic" : "Common";
+          return {
+            id,
+            name: generateMeeBotName(id),
+            rarity,
+            energyLevel: 0,
+            stakingStart: null,
+            isStaking: false,
+            image: `https://picsum.photos/seed/meebot_${id}/1024/1024`,
+            baseStats: {
+              power: 40 + Math.random() * 20,
+              speed: 40 + Math.random() * 20,
+              intel: 40 + Math.random() * 20
+            }
+          };
+        });
+        setState(prev => ({ ...prev, myBots: initialBots }));
+      }
     }
   }, [address]);
 
-  // High-frequency energy infusion logic
+  const addBot = useCallback((bot: MeeBot) => {
+    setState(prev => ({
+      ...prev,
+      myBots: [bot, ...prev.myBots],
+      balances: {
+        ...prev.balances,
+        nftCount: prev.balances.nftCount + 1
+      }
+    }));
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setState(prev => {
-        let evolutionOccurred = false;
         const updatedBots = prev.myBots.map(bot => {
           if (bot.isStaking && bot.stakingStart) {
-            // Demo: 1 MCB every 10 seconds for visual satisfaction
             const now = Date.now();
             const elapsed = (now - bot.stakingStart) / 1000;
             if (elapsed >= 10) {
-              const newEnergy = bot.energyLevel + 1;
-              
-              // Check for evolution milestones
-              if ([10, 25, 50].includes(newEnergy)) evolutionOccurred = true;
-
-              return { ...bot, energyLevel: newEnergy, stakingStart: now };
+              return { ...bot, energyLevel: bot.energyLevel + 1, stakingStart: now };
             }
           }
           return bot;
         });
-
-        if (evolutionOccurred) {
-          // Trigger a notification if needed, but handled better via events
-        }
-
         return { ...prev, myBots: updatedBots };
       });
     }, 1000);
@@ -141,7 +139,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stakingStart: activating ? Date.now() : null
       };
 
-      // Logging logic
       setTimeout(() => {
         addEvent({
           type: activating ? 'Staked' : 'Claimed',
@@ -195,9 +192,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
-      const [nativeBalance, tokenBalance, nftBalance, rewardRate] = await Promise.all([
+      const [nativeBalance, tokenBalance, stakedBalance, nftBalance, rewardRate] = await Promise.all([
         client.getBalance({ address }),
         getTokenBalance(address),
+        getStakedBalance(address),
         getNFTBalance(address),
         getRewardRate()
       ]);
@@ -206,7 +204,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         balances: {
           native: formatEther(nativeBalance),
           token: formatEther(tokenBalance),
-          nftCount: Number(nftBalance),
+          staked: formatEther(stakedBalance),
+          nftCount: prev.myBots.length || Number(nftBalance),
           rewardRate: formatEther(rewardRate)
         }
       }));
@@ -215,7 +214,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } finally {
       setGlobalLoading('balances', false);
     }
-  }, [address, setGlobalLoading]);
+  }, [address, setGlobalLoading, state.myBots.length]);
 
   const connectWallet = async (connector?: any) => {
     setState(prev => ({ ...prev, isConnecting: true }));
@@ -257,7 +256,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setGalleryFilter,
       notify,
       removeNotification,
-      toggleBotStaking
+      toggleBotStaking,
+      addBot
     }}>
       {children}
     </AppContext.Provider>

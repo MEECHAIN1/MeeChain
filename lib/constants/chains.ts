@@ -1,20 +1,20 @@
 
 import { Chain } from 'viem';
 
-// MeeChain Configuration updated with provided QuikNode RPC
+// MeeChain Configuration updated to use BNB Smart Chain (BSC) as the primary protocol
 export const meechain: Chain = {
-  id: 56, // Mapping to Polygon Mainnet as per QuikNode URL
-  name: 'MeeChain Ritual (bsc)',
+  id: 56, // Binance Smart Chain Mainnet
+  name: 'MeeChain Ritual (BSC)',
   nativeCurrency: {
     decimals: 18,
-    name: 'meechain',
-    symbol: 'MCB',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
-    default: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
-    public: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
+    default: { http: ['https://bsc-dataseed.binance.org/', 'https://binance.llamarpc.com'] },
+    public: { http: ['https://bsc-dataseed.binance.org/', 'https://binance.llamarpc.com'] },
   },
   blockExplorers: {
-    default: { name: 'bscscan', url: 'https://bscscan.com' },
+    default: { name: 'BscScan', url: 'https://bscscan.com' },
   },
 };

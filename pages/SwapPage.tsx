@@ -16,16 +16,28 @@ const SwapPage: React.FC = () => {
   const tokens = [
     { symbol: 'MCB', name: 'MeeChain Bot', address: ADRS.token, icon: '💎' },
     { symbol: 'sMCB', name: 'Staked MeeBot', address: ADRS.staking, icon: '💰' },
-    { symbol: 'USDT', name: 'Tether Ritual', address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', icon: '💵' }
+    { symbol: 'BNB', name: 'BNB Flux', address: '0x0000000000000000000000000000000000000000', icon: '⚡' }
   ];
 
   const [fromToken, setFromToken] = useState(tokens[0]);
   const [toToken, setToToken] = useState(tokens[1]);
 
+  const activeBalance = useMemo(() => {
+    if (fromToken.symbol === 'MCB') return state.balances.token;
+    if (fromToken.symbol === 'sMCB') return state.balances.staked;
+    if (fromToken.symbol === 'BNB') return state.balances.native;
+    return '0';
+  }, [fromToken, state.balances]);
+
   useEffect(() => {
     const updateQuote = async () => {
       if (!fromAmount || Number(fromAmount) <= 0) {
         setToAmount('0');
+        return;
+      }
+      // Simple mock quote if tokens are same, otherwise fetch
+      if (fromToken.symbol === toToken.symbol) {
+        setToAmount(fromAmount);
         return;
       }
       const quote = await getSwapQuote(fromAmount, [fromToken.address as `0x${string}`, toToken.address as `0x${string}`]);
@@ -37,6 +49,7 @@ const SwapPage: React.FC = () => {
 
   const handleSwap = async () => {
     if (!state.account) return notify('error', 'Neural Link required for conversion.');
+    if (Number(fromAmount) > Number(activeBalance)) return notify('error', 'Insufficient flux energy (Balance too low).');
     
     setGlobalLoading('general', true);
     setStatus({ type: 'loading', msg: `Initiating Flux Conversion: ${fromAmount} ${fromToken.symbol} → ${toToken.symbol}...` });
@@ -93,7 +106,7 @@ const SwapPage: React.FC = () => {
           <div className="p-6 sm:p-8 bg-white/[0.03] border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] space-y-4 hover:border-white/10 transition-all group">
             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
               <span>Origin (From)</span>
-              <span>Bal: {parseFloat(state.balances.native).toFixed(1)}</span>
+              <span>Bal: {parseFloat(activeBalance).toFixed(2)} {fromToken.symbol}</span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
               <input 
@@ -104,7 +117,13 @@ const SwapPage: React.FC = () => {
                 placeholder="0.00"
                 className="bg-transparent text-3xl sm:text-5xl font-black text-white focus:outline-none w-full placeholder:text-slate-800 tracking-tighter"
               />
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/5 px-4 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all flex-shrink-0">
+              <div 
+                onClick={() => {
+                  const nextIdx = (tokens.findIndex(t => t.symbol === fromToken.symbol) + 1) % tokens.length;
+                  setFromToken(tokens[nextIdx]);
+                }}
+                className="flex items-center gap-2 sm:gap-3 bg-white/5 px-4 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all flex-shrink-0"
+              >
                 <span className="text-xl sm:text-2xl">{fromToken.icon}</span>
                 <span className="font-black text-xs sm:text-sm uppercase">{fromToken.symbol}</span>
               </div>
@@ -125,37 +144,23 @@ const SwapPage: React.FC = () => {
           <div className="p-6 sm:p-8 bg-white/[0.03] border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] space-y-4 hover:border-white/10 transition-all">
             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
               <span>Target (To)</span>
-              <span>Yield</span>
+              <span>Expected Yield</span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="text-3xl sm:text-5xl font-black text-slate-500 tracking-tighter w-full overflow-hidden truncate">
                 {toAmount === '0' ? '0.00' : parseFloat(toAmount).toFixed(3)}
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/5 px-4 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all flex-shrink-0">
+              <div 
+                onClick={() => {
+                  const nextIdx = (tokens.findIndex(t => t.symbol === toToken.symbol) + 1) % tokens.length;
+                  setToToken(tokens[nextIdx]);
+                }}
+                className="flex items-center gap-2 sm:gap-3 bg-white/5 px-4 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all flex-shrink-0"
+              >
                 <span className="text-xl sm:text-2xl">{toToken.icon}</span>
                 <span className="font-black text-xs sm:text-sm uppercase">{toToken.symbol}</span>
               </div>
             </div>
-          </div>
-
-          {/* Telemetry Detail */}
-          <div className="px-4 sm:px-6 py-4 space-y-2 border-l-2 border-amber-500/20 ml-2 sm:ml-4">
-             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest">
-               <span className="text-slate-500">Rate</span>
-               <span className="text-white">1 {fromToken.symbol} = {(Number(toAmount)/Number(fromAmount) || 1).toFixed(2)} {toToken.symbol}</span>
-             </div>
-             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest">
-               <span className="text-slate-500">Impact</span>
-               <span className="text-emerald-400">0.05%</span>
-             </div>
-             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest">
-               <span className="text-slate-500">Slippage</span>
-               <div className="flex gap-2">
-                 {['0.1', '0.5', '1.0'].map(s => (
-                   <button key={s} onClick={() => setSlippage(s)} className={`px-2 py-0.5 rounded ${slippage === s ? 'bg-amber-500/20 text-amber-500' : 'text-slate-700'}`}>{s}%</button>
-                 ))}
-               </div>
-             </div>
           </div>
 
           {/* Action Button */}

@@ -69,10 +69,10 @@ const DashboardPage: React.FC = () => {
               </>
             ) : (
               <>
-                <StatCard title="MCB Balance" value={parseFloat(state.balances.native).toFixed(2)} unit="MCB" color="text-white" icon="💎" />
-                <StatCard title="Staked" value={parseFloat(state.balances.token).toFixed(1)} unit="sMCB" color="text-sky-400" icon="💰" />
-                <StatCard title="NFTs" value={state.balances.nftCount.toString()} unit="ITEMS" color="text-indigo-400" icon="🖼" />
-                <StatCard title="Reward" value={parseFloat(state.balances.rewardRate).toFixed(4)} unit="MCB/S" color="text-amber-400" icon="⚡" />
+                <StatCard title="BNB Balance" value={parseFloat(state.balances.native).toFixed(4)} unit="BNB" color="text-white" icon="💎" />
+                <StatCard title="MCB Token" value={parseFloat(state.balances.token).toFixed(2)} unit="MCB" color="text-sky-400" icon="🔋" />
+                <StatCard title="Staked" value={parseFloat(state.balances.staked).toFixed(1)} unit="sMCB" color="text-amber-400" icon="💰" />
+                <StatCard title="NFT Units" value={state.balances.nftCount.toString()} unit="ITEMS" color="text-indigo-400" icon="🖼" />
               </>
             )}
           </div>
@@ -116,7 +116,7 @@ const DashboardPage: React.FC = () => {
                       <div className="hidden sm:block text-right">
                         <p className="text-[10px] font-mono text-slate-600 truncate max-w-[100px]">{event.hash}</p>
                       </div>
-                      <a href={`https://explorer.meechain.com/tx/${event.hash}`} target="_blank" rel="noreferrer" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors text-xs">
+                      <a href={`https://bscscan.com/tx/${event.hash}`} target="_blank" rel="noreferrer" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors text-xs">
                         ↗
                       </a>
                     </div>
@@ -150,11 +150,11 @@ const DashboardPage: React.FC = () => {
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Quick Stats</h4>
                 <div className="space-y-3">
                    <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Total Nodes</span>
-                    <span className="text-xs font-black text-white font-mono">1,204</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">BSC Status</span>
+                    <span className="text-xs font-black text-white font-mono">Connected</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Epoch Status</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Protocol Epoch</span>
                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Active</span>
                   </div>
                   <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden mt-1">

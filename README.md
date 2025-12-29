@@ -17,7 +17,7 @@ MeeChain MeeBot is a high-performance, mystical dashboard designed for the MeeCh
 
 ### 1. Clone & Prepare
 ```bash
-git clone https://github.com/meechain1/meechain-meebot.git
+git clone https://github.com/your-org/meechain-meebot.git
 cd meechain-meebot
 npm install
 ```
@@ -25,11 +25,10 @@ npm install
 ### 2. Configure Energy Vectors (.env)
 Create a `.env` file with the following coordinates:
 ```env
-VITE_RPC_URL=VITE_RPC_URL=https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033
+VITE_RPC_URL=http://127.0.0.1:9545
 VITE_NFT_ADDRESS=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 VITE_TOKEN_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
 VITE_STAKING_ADDRESS=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
-VITE_MCB_TOKEN_ADDRESS=0x8Da6Eb1cd5c0C8cf84bD522AB7c11747DB1128C9
 ```
 
 ### 3. Channel the Local Stream

@@ -1,15 +1,17 @@
 
-import { createPublicClient, http, fallback } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { meechain } from './constants/chains';
 
-const RPC_URL = "https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033";
+// Using standard http transport for maximum compatibility and stability
+const PRIMARY_RPC = "https://bsc-dataseed.binance.org/";
 
 export { meechain };
 
 export const client = createPublicClient({
   chain: meechain,
-  transport: fallback([
-    http(RPC_URL),
-    http("https://bsc-dataseed.binance.org")
-  ]),
+  transport: http(PRIMARY_RPC, {
+    timeout: 10000,
+    retryCount: 2,
+    retryDelay: 1000,
+  }),
 });

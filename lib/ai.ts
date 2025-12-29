@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const askOracle = async (prompt: string, telemetry: any) => {
- const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const systemInstruction = `
     คุณคือ "MeeBot Oracle" ระบบปัญญาประดิษฐ์ผู้พิทักษ์ MeeChain
@@ -18,7 +18,7 @@ export const askOracle = async (prompt: string, telemetry: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,

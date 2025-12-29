@@ -1,5 +1,4 @@
 
-// Fix: Removed 'reconnect' from 'wagmi' imports as it is not exported from this entry point in wagmi v2 and remains unused in this configuration.
 import { http, createConfig } from 'wagmi';
 import { meechain } from './viemClient';
 import { injected, walletConnect } from 'wagmi/connectors';

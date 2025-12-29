@@ -33,7 +33,7 @@ export async function getNFTOwner(tokenId: bigint): Promise<`0x${string}`> {
   }
 }
 
-export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: bigint, hash: string) => void) {
+export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: bigint, hash: string) => void): () => void {
   try {
     const unwatch = client.watchContractEvent({
       address: ADRS.nft,
@@ -48,7 +48,8 @@ export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: big
         });
       },
     });
-    return unwatch || (() => {});
+    // Ensure we return a function even if unwatch is somehow not one
+    return typeof unwatch === 'function' ? unwatch : () => {};
   } catch (e) {
     console.warn("Could not watch NFT events:", e);
     return () => {};
