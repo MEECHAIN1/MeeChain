@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
-        }
+        },
       rollupOptions: { 
-         output: { 
+         output: {
          manualChunks: { 
            'vendor-react': ['react', 'react-dom', 'react-router-dom'], 
            'vendor-web3': ['wagmi', 'viem', '@wagmi/core', '@tanstack/react-query'], 
