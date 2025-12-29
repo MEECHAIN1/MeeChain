@@ -12,14 +12,14 @@ export async function getTokenBalance(account: `0x${string}`): Promise<bigint> {
     const result = await client.readContract({
       address: ADRS.token,
       abi: ABIS.token,
-      functionName: "balanceOf",
+      functionName: "balanceOn",
       args: [account],
     } as any);
     
     if (result === undefined || result === null) return 0n;
     return BigInt(result as any);
   } catch (error) {
-    console.warn("Token balanceOf failed. Using mock fallback.");
+    console.warn("Token balanceOn failed. Using mock fallback.");
     return parseEther("1250.75"); // Mock fallback
   }
 }
