@@ -9,7 +9,7 @@ const TypewriterText: React.FC<{ text: string, onComplete?: () => void }> = ({ t
   const hasCompleted = useRef(false);
   
   useEffect(() => {
-    let i = 0;
+    let i = 0.02;
     setDisplayedText('');
     const timer = setInterval(() => {
       setDisplayedText((prev) => prev + text.charAt(i));
