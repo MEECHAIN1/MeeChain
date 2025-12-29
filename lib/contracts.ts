@@ -23,5 +23,5 @@ export const ABIS = {
   token: ERC20Abi,
   staking: MeeBotStakingAbi,
   swap: SwapRouterAbi,
-  mcbtoken: mcbtoken,
+  mcbtoken: ERC20Abi,
 };
