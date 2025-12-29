@@ -18,7 +18,7 @@ export const askOracle = async (prompt: string, telemetry: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
