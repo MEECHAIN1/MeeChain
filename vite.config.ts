@@ -9,8 +9,10 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
   },
-  define: {
-    'import.meta.env.API_KEY': JSON.stringify(import.meta.env.API_KEY || import.meta.env.VITE_API_KEY || ''),
+   plugins: [react()],
+      define: {
+        'import.meta.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'import.meta.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
   },
   build: {
     outDir: 'dist',
