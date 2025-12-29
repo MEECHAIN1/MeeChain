@@ -15,6 +15,6 @@ export const meechain: Chain = {
     public: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
   },
   blockExplorers: {
-    default: { name: 'PolygonScan', url: 'https://polygonscan.com' },
+    default: { name: 'bscscan', url: 'https://bscscan.com' },
   },
 };
