@@ -8,7 +8,7 @@ import { GoogleGenAI } from "@google/genai";
  */
 export const askOracle = async (prompt: string, telemetry: any) => {
   // สร้าง instance ใหม่ทุกครั้งเพื่อให้แน่ใจว่าใช้ API Key ล่าสุด
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.API_KEY });
+ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
   
   const systemInstruction = `
     คุณคือ "MeeBot Oracle" หน่วยประมวลผลทางปัญญาระดับสูงและผู้คุ้มครองเชิงยุทธศาสตร์ของระบบนิเวศ MeeChain
