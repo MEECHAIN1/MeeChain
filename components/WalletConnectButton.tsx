@@ -4,11 +4,6 @@ import { useConnect, useAccount } from 'wagmi';
 import { useApp } from '../context/AppState';
 import { triggerSuccessRitual } from '../lib/rituals';
 
-/**
- * WalletConnectButton Component
- * Handles the connection ritual for linking the user's neural identity (wallet).
- */
-// Fix: Added missing implementation and export default to resolve import errors in Navbar.tsx
 const WalletConnectButton: React.FC = () => {
   const { state, connectWallet, disconnectWallet } = useApp();
   const { connectors } = useConnect();
