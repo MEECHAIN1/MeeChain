@@ -14,7 +14,6 @@ export const triggerSuccessRitual = () => {
 };
 
 export const triggerCelestialRitual = () => {
-  // Visual pulse logic can be added here if needed
   console.log("Celestial Ritual Triggered");
 };
 
