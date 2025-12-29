@@ -28,6 +28,6 @@ export default defineConfig(({ mode }) => {
            'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
           }
        }
-    };
+    }
 );
 
