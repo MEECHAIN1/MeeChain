@@ -1,5 +1,5 @@
 {
-  "name": "Meebot Chain",
+  "name": "MeeChain MeeBot",
   "description": "A high-performance blockchain dashboard for the MeeChain ecosystem with advanced responsiveness and AI-powered Oracle integration.",
   "requestFramePermissions": [
     "camera"
