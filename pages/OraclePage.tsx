@@ -18,7 +18,7 @@ const TypewriterText: React.FC<{ text: string, onComplete?: () => void }> = ({ t
         clearInterval(timer);
         onComplete?.();
       }
-    }, 12);
+    }, 20);
     return () => clearInterval(timer);
   }, [text, onComplete]);
 
