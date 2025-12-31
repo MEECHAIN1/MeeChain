@@ -9,13 +9,20 @@ export async function getNFTBalance(account: `0x${string}`): Promise<bigint> {
       abi: ABIS.nft,
       functionName: "balanceOf",
       args: [account],
-    } as any);
+    });
     
-    if (result === undefined || result === null) return 0n;
-    return BigInt(result as any);
+    // Viem should return bigint directly for uint256 outputs
+    if (typeof result === 'bigint') {
+        return result;
+    } else if (result !== undefined && result !== null) {
+        // Fallback to BigInt conversion for unexpected types, though should be bigint
+        return BigInt(result);
+    }
+    return 0n; // Default if result is undefined/null
   } catch (error) {
-    console.warn("NFT balance fallback triggered.");
-    return 3n; 
+    console.error("Error fetching NFT balance for account:", account, error);
+    // Rethrow the actual error to propagate it to the AppState context for proper handling
+    throw error; 
   }
 }
 
