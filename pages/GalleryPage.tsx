@@ -130,26 +130,45 @@ const GalleryPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Telemetry Snapshot */}
-                <div className="grid grid-cols-3 gap-6 font-mono">
-                  {[
-                    { label: 'PWR', value: Math.floor(nft.baseStats.power + nft.energyLevel * 1.5), color: 'bg-rose-500' },
-                    { label: 'SPD', value: Math.floor(nft.baseStats.speed + nft.energyLevel * 1.2), color: 'bg-sky-500' },
-                    { label: 'INT', value: Math.floor(nft.baseStats.intel + nft.energyLevel * 2.0), color: 'bg-emerald-500' }
-                  ].map((stat) => (
-                    <div key={stat.label} className="space-y-3">
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-[8px] font-black text-slate-500">{stat.label}</span>
-                        <span className="text-xs font-black text-white">{stat.value}</span>
+                {/* New Components Section */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <span className="text-xl">🛠️</span> Core Components
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {nft.components.map((component, idx) => (
+                      <span key={idx} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-slate-300 backdrop-blur-sm">
+                        {component}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Telemetry Stats (formerly Telemetry Snapshot) */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <span className="text-xl">📈</span> Telemetry Stats
+                  </h4>
+                  <div className="grid grid-cols-3 gap-6 font-mono">
+                    {[
+                      { label: 'PWR', value: Math.floor(nft.baseStats.power + nft.energyLevel * 1.5), color: 'bg-rose-500' },
+                      { label: 'SPD', value: Math.floor(nft.baseStats.speed + nft.energyLevel * 1.2), color: 'bg-sky-500' },
+                      { label: 'INT', value: Math.floor(nft.baseStats.intel + nft.energyLevel * 2.0), color: 'bg-emerald-500' }
+                    ].map((stat) => (
+                      <div key={stat.label} className="space-y-3">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-[8px] font-black text-slate-500">{stat.label}</span>
+                          <span className="text-xs font-black text-white">{stat.value}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${stat.color} transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.2)]`} 
+                            style={{ width: `${Math.min((stat.value / 250) * 100, 100)}%` }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${stat.color} transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.2)]`} 
-                          style={{ width: `${Math.min((stat.value / 250) * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
                 <div className="pt-4 flex gap-4">

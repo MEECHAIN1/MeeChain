@@ -25,6 +25,7 @@ export interface MeeBot {
     speed: number;
     intel: number;
   };
+  components: string[]; // Added components array
 }
 
 export interface UserState {

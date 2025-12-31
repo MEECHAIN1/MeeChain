@@ -86,7 +86,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               power: 40 + Math.random() * 20,
               speed: 40 + Math.random() * 20,
               intel: 40 + Math.random() * 20
-            }
+            },
+            components: i === 0
+              ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
+              : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
           };
         });
         setState(prev => ({ ...prev, myBots: initialBots }));

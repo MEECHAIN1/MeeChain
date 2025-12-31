@@ -110,7 +110,8 @@ const MintPage: React.FC = () => {
           power: 40 + Math.random() * 20,
           speed: 40 + Math.random() * 20,
           intel: 40 + Math.random() * 20
-        }
+        },
+        components: ["Modular Plating", "Core Processor", "Sensory Array", "Energy Conduit"] // Default components for new bots
       };
 
       addBot(newBot);
