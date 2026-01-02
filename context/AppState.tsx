@@ -27,6 +27,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const BOTS_STORAGE_KEY = 'meebot_collective_data';
+const GALLERY_FILTER_KEY = 'meebot_gallery_filter';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
@@ -35,12 +36,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(BOTS_STORAGE_KEY);
+    const savedFilter = localStorage.getItem(GALLERY_FILTER_KEY) || 'All';
     return {
       account: null,
       chainId: null,
       isConnecting: false,
       notifications: [],
-      galleryFilter: 'All',
+      galleryFilter: savedFilter,
       loadingStates: {
         balances: false,
         staking: false,
@@ -62,14 +64,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
+  // Persist bots
   useEffect(() => {
     localStorage.setItem(BOTS_STORAGE_KEY, JSON.stringify(state.myBots));
   }, [state.myBots]);
 
+  // Persist filter
+  useEffect(() => {
+    localStorage.setItem(GALLERY_FILTER_KEY, state.galleryFilter);
+  }, [state.galleryFilter]);
+
   useEffect(() => {
     if (address) {
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
-      // If we have no bots yet, generate some starters (only once)
       if (state.myBots.length === 0) {
         const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
@@ -195,21 +202,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
-      const [nativeBalance, tokenBalance, stakedBalance, nftBalance, rewardRate] = await Promise.all([
+      const results = await Promise.allSettled([
         client.getBalance({ address }),
         getTokenBalance(address),
         getStakedBalance(address),
         getNFTBalance(address),
         getRewardRate()
       ]);
+
+      const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
+
       setState(prev => ({
         ...prev,
         balances: {
-          native: formatEther(nativeBalance),
-          token: formatEther(tokenBalance),
-          staked: formatEther(stakedBalance),
-          nftCount: prev.myBots.length || Number(nftBalance),
-          rewardRate: formatEther(rewardRate)
+          native: nativeRes.status === 'fulfilled' ? formatEther(nativeRes.value) : prev.balances.native,
+          token: tokenRes.status === 'fulfilled' ? formatEther(tokenRes.value) : prev.balances.token,
+          staked: stakedRes.status === 'fulfilled' ? formatEther(stakedRes.value) : prev.balances.staked,
+          nftCount: prev.myBots.length || (nftRes.status === 'fulfilled' ? Number(nftRes.value) : prev.balances.nftCount),
+          rewardRate: rewardRes.status === 'fulfilled' ? formatEther(rewardRes.value) : prev.balances.rewardRate
         }
       }));
     } catch (e) {
