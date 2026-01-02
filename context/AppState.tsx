@@ -8,6 +8,7 @@ import { getNFTBalance } from '../lib/services/nft';
 import { getTokenBalance } from '../lib/services/token';
 import { getRewardRate } from '../lib/services/staking';
 import { generateMeeBotName } from '../lib/meeBotNames';
+import { ai, genai } from '../lib/ai';
 
 interface AppContextType {
   state: UserState;
