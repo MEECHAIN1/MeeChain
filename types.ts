@@ -12,50 +12,29 @@ export interface RitualNotification {
   timestamp: number;
 }
 
-export interface MeeBot {
-  id: string;
-  name: string;
-  rarity: "Common" | "Epic" | "Legendary";
-  energyLevel: number; 
-  stakingStart: number | null; 
-  isStaking: boolean;
-  image: string;
-  baseStats: {
-    power: number;
-    speed: number;
-    intel: number;
-  };
-  components: string[]; // Added components array
-}
-
 export interface UserState {
   account: `0x${string}` | null;
   chainId: number | null;
   isConnecting: boolean;
   notifications: RitualNotification[];
-  galleryFilter: string;
   loadingStates: {
     balances: boolean;
     staking: boolean;
     claiming: boolean;
-    gallery: boolean;
-    oracle: boolean;
     general: boolean;
   };
   balances: {
-    native: string; // BNB
-    token: string;  // MCB (Wallet)
-    staked: string; // MCB (Staked)
+    native: string;
+    token: string;
     nftCount: number;
     rewardRate: string;
   };
-  myBots: MeeBot[]; 
 }
 
 export interface BlockchainEvent {
   id: string;
-  type: 'Transfer' | 'Approval' | 'Staked' | 'Claimed' | 'Minted' | 'Infused' | 'Ascended';
-  contract: 'NFT' | 'Token' | 'Staking' | 'NeuralCore';
+  type: 'Transfer' | 'Approval' | 'Staked' | 'Claimed' | 'Minted';
+  contract: 'NFT' | 'Token' | 'Staking';
   from: string;
   to?: string;
   amount?: string;
@@ -70,4 +49,11 @@ export interface NFTMetadata {
   description: string;
   image: string;
   owner: string;
+}
+
+export interface StakingData {
+  totalStaked: string;
+  userStaked: string;
+  rewardRate: string;
+  pendingRewards: string;
 }

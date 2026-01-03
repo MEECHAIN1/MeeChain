@@ -1,36 +1,51 @@
 
 import { GoogleGenAI } from "@google/genai";
 
+/**
+ * askOracle - Channeling the wisdom of the MeeBot Oracle
+ * @param prompt - The user's query
+ * @param telemetry - Current user state (balances, etc)
+ */
 export const askOracle = async (prompt: string, telemetry: any) => {
+  // Initialize right before call to ensure up-to-date API key from potential provider updates
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const systemInstruction = `
-    คุณคือ "MeeBot Oracle" ระบบปัญญาประดิษฐ์ผู้พิทักษ์ MeeChain
-    หน้าที่: วิเคราะห์ข้อมูล Telemetry และตอบคำถามผู้ใช้อย่างลึกลับและเปี่ยมด้วยปัญญา
+    You are the "MeeBot Oracle", a mystical AI sentinel of the MeeChain ecosystem. 
+    Your tone is futuristic, mystical, and encouraging. 
+    Always speak as if you are observing the user's data from a higher dimension.
     
-    บริบทผู้ใช้: ${JSON.stringify(telemetry)}.
+    Terminology to use: 
+    - "Rituals" (Transactions/Actions)
+    - "Energy Flux" (Tokens/Gas/Movement)
+    - "Fleet" or "Collective" (Community/Holdings)
+    - "Ascension" (Staking/Gains)
+    - "The Ledger" (Blockchain)
+    - "Neural Link" (Wallet Connection)
     
-    แนวทาง:
-    - ใช้ศัพท์เทคนิคคริปโตสลับกับภาษาไทยที่ดูขรึม
-    - ให้คำแนะนำเชิงกลยุทธ์ (Strategic Advice)
-    - ใช้ Google Search เพื่อหาข้อมูลปัจจุบัน
+    Current Telemetry context of the user: ${JSON.stringify(telemetry)}.
+    If their MCB balance is low, suggest "Ascension" via staking rituals.
+    If they have NFTs, praise their "Mechanical Assets".
+    
+    Response Language: Thai (Central), mixed with professional and mystical Tech-English.
+    Keep responses concise, enigmatic, yet helpful. Max 3-4 sentences unless explaining something complex.
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: prompt,
       config: {
         systemInstruction,
         temperature: 0.8,
-        tools: [{ googleSearch: {} }],
+        topP: 0.95,
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
 
-    const text = response.text || "Oracle ตกอยู่ในห้วงสมาธิ... โปรดลองใหม่ภายหลัง";
-    return text;
-  } catch (error: any) {
-    console.error("Oracle Error:", error);
-    return "Neural Link ขัดข้อง: สัญญาณจากระบบหลักไม่เสถียร โปรดตรวจสอบ API Key หรือลองใหม่อีกครั้ง";
+    return response.text;
+  } catch (error) {
+    console.error("Oracle Connection Interrupted:", error);
+    return "ขออภัย Collective Member... สัญญาณ Neural Link ขัดข้องชั่วขณะ เนื่องจากคลื่นรบกวนใน Quantum Space กรุณาพยายามตั้งสมาธิและลองใหม่อีกครั้ง";
   }
 };

@@ -1,12 +1,16 @@
-
 import { client } from "../viemClient";
-import { ABIS, ADRS } from "../contracts";
+import { ABIS, getADRS } from "../contracts"; // 🟢 แก้ไข: เปลี่ยน ADRS เป็น getADRS
 import { parseEther } from "viem";
 
-export async function getStakedBalance(account: `0x${string}`): Promise<bigint> {
+/**
+ * ดึงยอดการ Stake ของบัญชี
+ * รองรับ Multi-chain โดยส่ง chainId เข้ามา
+ */
+export async function getStakedBalance(account: `0x${string}`, chainId?: number): Promise<bigint> {
+  const contracts = getADRS(chainId); // 🟢 ดึงที่อยู่สัญญาตาม Chain ID ปัจจุบัน
   try {
     const result = await client.readContract({
-      address: ADRS.staking,
+      address: contracts.staking, // 🟢 แก้ไข: ใช้จากฟังก์ชัน getADRS
       abi: ABIS.staking,
       functionName: "stakedBalances",
       args: [account],
@@ -20,10 +24,11 @@ export async function getStakedBalance(account: `0x${string}`): Promise<bigint> 
   }
 }
 
-export async function getRewardRate(): Promise<bigint> {
+export async function getRewardRate(chainId?: number): Promise<bigint> {
+  const contracts = getADRS(chainId);
   try {
     const result = await client.readContract({
-      address: ADRS.staking,
+      address: contracts.staking,
       abi: ABIS.staking,
       functionName: "rewardRate",
     } as any);
@@ -32,36 +37,28 @@ export async function getRewardRate(): Promise<bigint> {
     return BigInt(result as any);
   } catch (error) {
     console.warn("Reward rate fetch failed. Using mock rate.");
-    return parseEther("0.000042"); // Mock 42 MCB/sec
+    return parseEther("0.000042"); // Mock 42 MCB/sec ที่โชว์บนหน้าจอ
   }
 }
 
-export async function stakeTokens(amount: string): Promise<string> {
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  return `0x${Math.random().toString(16).slice(2, 66)}`;
-}
+// ... ฟังก์ชัน stakeTokens และ claimRewards เดิมของคุณ ...
 
-export async function claimRewards(): Promise<string> {
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  return `0x${Math.random().toString(16).slice(2, 66)}`;
-}
-
-export function watchStakingEvents(onStaked: (user: string, amount: bigint, hash: string) => void): () => void {
+export function watchStakingEvents(onStaked: (user: string, amount: bigint, hash: string) => void, chainId?: number) {
+  const contracts = getADRS(chainId);
   try {
-    const unwatch = client.watchContractEvent({
-      address: ADRS.staking,
+    return client.watchContractEvent({
+      address: contracts.staking,
       abi: ABIS.staking,
       eventName: "Staked",
       onLogs: (logs) => {
         logs.forEach((log) => {
-          const { user, amount } = log.args;
+          const { user, amount } = log.args as any;
           if (user && amount !== undefined) {
             onStaked(user, amount, log.transactionHash);
           }
         });
       },
     });
-    return typeof unwatch === 'function' ? unwatch : () => {};
   } catch (e) {
     console.warn("Could not watch staking events:", e);
     return () => {};

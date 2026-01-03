@@ -1,10 +1,19 @@
 
 /**
- * Audio Celebration Module - Silent Fallback
- * Prevent "Failed to load" errors.
+ * Audio Celebration Module
+ * Specialized audio feedback for the MeeBot Ecosystem.
  */
 
+const CELEBRATION_SOUND = 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3';
+
 export default function celebration() {
-  // Silent fallback to prevent source loading errors
-  console.log("Celebration Ritual triggered (Audio disabled for compatibility)");
+  try {
+    const audio = new Audio(CELEBRATION_SOUND);
+    audio.volume = 0.5;
+    audio.play().catch((err) => {
+      console.warn('🔇 Celebration sound blocked by browser policy:', err);
+    });
+  } catch (e) {
+    console.warn('🔇 Audio context failure:', e);
+  }
 }

@@ -1,23 +1,38 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true,
+    allowedHosts: true
+  },
+  define: {
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || process.env.VITE_API_KEY || '')
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 500,
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
       },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-web3': ['wagmi', 'viem', '@wagmi/core', '@tanstack/react-query'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'canvas-confetti'],
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei']
         }
       }
-    };
+    }
+  },
 });
