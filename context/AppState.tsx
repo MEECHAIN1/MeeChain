@@ -20,7 +20,7 @@ interface AppContextType {
   setGalleryFilter: (filter: string) => void;
   notify: (type: RitualNotification['type'], message: string) => void;
   removeNotification: (id: string) => void;
-  toggleBotStaking: (botId: string) => void;
+  toggleBotStaking: (botId: string) => Promise<void>;
   addBot: (bot: MeeBot) => void;
   updateLuckiness: (amount: number) => void;
   spendGems: (amount: number) => boolean;
@@ -28,9 +28,9 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const BOTS_STORAGE_KEY = 'meebot_collective_data';
-const GALLERY_FILTER_KEY = 'meebot_gallery_filter';
-const LUCKINESS_KEY = 'meebot_luckiness_progress';
+const BOTS_STORAGE_KEY = 'meebot_collective_data_v2';
+const GALLERY_FILTER_KEY = 'meebot_gallery_filter_v2';
+const LUCKINESS_KEY = 'meebot_luckiness_progress_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
@@ -61,7 +61,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         staked: '0',
         nftCount: 0,
         rewardRate: '0',
-        gems: 250, // Initial balance
+        gems: 250,
         luckiness: savedLuck ? parseInt(savedLuck) : 5
       },
       myBots: savedBots ? JSON.parse(savedBots) : []
@@ -170,7 +170,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearInterval(interval);
   }, []);
 
-  const toggleBotStaking = useCallback((botId: string) => {
+  const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
+    setState(prev => ({
+      ...prev,
+      loadingStates: { ...prev.loadingStates, [key]: isLoading }
+    }));
+  }, []);
+
+  const toggleBotStaking = useCallback(async (botId: string) => {
+    setGlobalLoading('staking', true);
+    await new Promise(r => setTimeout(r, 1200));
+
     setState(prev => {
       const botIndex = prev.myBots.findIndex(b => b.id === botId);
       if (botIndex === -1) return prev;
@@ -185,20 +195,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stakingStart: activating ? Date.now() : null
       };
 
-      setTimeout(() => {
-        addEvent({
-          type: activating ? 'Staked' : 'Claimed',
-          contract: 'Staking',
-          from: prev.account || '0x0',
-          tokenId: bot.id,
-          hash: `0x${Math.random().toString(16).slice(2, 66)}`
-        });
-        notify(activating ? 'success' : 'info', `${activating ? 'Rig Active' : 'Rig Idle'} for ${bot.name}`);
-      }, 0);
+      addEvent({
+        type: activating ? 'Staked' : 'Claimed',
+        contract: 'Staking',
+        from: prev.account || '0x0',
+        tokenId: bot.id,
+        hash: `0x${Math.random().toString(16).slice(2, 66)}`
+      });
+      notify(activating ? 'success' : 'info', `${activating ? 'Rig Connected' : 'Rig Standby'} - ${bot.name}`);
 
       return { ...prev, myBots: newBots };
     });
-  }, []);
+    setGlobalLoading('staking', false);
+  }, [setGlobalLoading]);
 
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -211,7 +220,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...current,
         notifications: current.notifications.filter(n => n.id !== id)
       }));
-    }, 5000);
+    }, 4500);
   }, []);
 
   const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
@@ -221,13 +230,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: Date.now(),
     };
     setEvents(prev => [newEvent, ...prev].slice(0, 50));
-  }, []);
-
-  const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
-    setState(prev => ({
-      ...prev,
-      loadingStates: { ...prev.loadingStates, [key]: isLoading }
-    }));
   }, []);
 
   const setGalleryFilter = useCallback((filter: string) => {
@@ -260,8 +262,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }));
     } catch (e) {
-      console.warn("Sync error:", e);
+      console.warn("Ritual Link Sync Jitter:", e);
     } finally {
+      await new Promise(r => setTimeout(r, 600));
       setGlobalLoading('balances', false);
     }
   }, [address, setGlobalLoading, state.myBots.length]);
@@ -272,7 +275,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const targetConnector = connector || connectors[0];
       await connectAsync({ connector: targetConnector });
     } catch (err: any) {
-      notify('error', `Connection Failed: ${err.message}`);
+      notify('error', `Link Failed: ${err.message}`);
     } finally {
       setState(prev => ({ ...prev, isConnecting: false }));
     }
@@ -283,7 +286,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await disconnectAsync();
       setState(prev => ({ ...prev, account: null }));
     } catch (err: any) {
-      notify('error', 'Disconnection Failed');
+      notify('error', 'Severance Failed');
     }
   };
 
