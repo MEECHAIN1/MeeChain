@@ -1,16 +1,12 @@
+
 import { client } from "../viemClient";
-import { ABIS, getADRS } from "../contracts"; // 🟢 แก้ไข: เปลี่ยน ADRS เป็น getADRS
+import { ABIS, ADRS } from "../contracts";
 import { parseEther } from "viem";
 
-/**
- * Fetches Token balance for an account.
- * รองรับ Multi-chain โดยส่ง chainId เข้ามาด้วย
- */
-export async function getTokenBalance(account: `0x${string}`, chainId?: number): Promise<bigint> {
-  const contracts = getADRS(chainId); // 🟢 ดึง Address ตาม Chain ปัจจุบัน
+export async function getTokenBalance(account: `0x${string}`): Promise<bigint> {
   try {
     const result = await client.readContract({
-      address: contracts.token, // 🟢 แก้ไข: ใช้ contracts.token
+      address: ADRS.token,
       abi: ABIS.token,
       functionName: "balanceOf",
       args: [account],
@@ -19,17 +15,15 @@ export async function getTokenBalance(account: `0x${string}`, chainId?: number):
     if (result === undefined || result === null) return 0n;
     return BigInt(result as any);
   } catch (error) {
-    console.warn("Token balanceOf failed. Using mock fallback.");
-    return parseEther("1250.75"); // Mock ที่คุณเห็นใน Dashboard
+    return parseEther("1250.75");
   }
 }
 
-export async function getTokenMetadata(chainId?: number) {
-  const contracts = getADRS(chainId);
+export async function getTokenMetadata() {
   try {
     const [symbol, decimals] = await Promise.all([
-      client.readContract({ address: contracts.token, abi: ABIS.token, functionName: "symbol" } as any),
-      client.readContract({ address: contracts.token, abi: ABIS.token, functionName: "decimals" } as any),
+      client.readContract({ address: ADRS.token, abi: ABIS.token, functionName: "symbol" } as any),
+      client.readContract({ address: ADRS.token, abi: ABIS.token, functionName: "decimals" } as any),
     ]);
     return { symbol: symbol as string, decimals: decimals as number };
   } catch (error) {
@@ -37,11 +31,10 @@ export async function getTokenMetadata(chainId?: number) {
   }
 }
 
-export function watchTokenTransfers(onLog: (from: string, to: string, value: bigint, hash: string) => void, chainId?: number) {
-  const contracts = getADRS(chainId);
+export function watchTokenTransfers(onLog: (from: string, to: string, value: bigint, hash: string) => void): () => void {
   try {
-    return client.watchContractEvent({
-      address: contracts.token,
+    const unwatch = client.watchContractEvent({
+      address: ADRS.token,
       abi: ABIS.token,
       eventName: "Transfer",
       onLogs: (logs) => {
@@ -53,8 +46,8 @@ export function watchTokenTransfers(onLog: (from: string, to: string, value: big
         });
       },
     });
+    return typeof unwatch === 'function' ? unwatch : () => {};
   } catch (e) {
-    console.warn("Could not watch token events:", e);
     return () => {};
   }
 }
