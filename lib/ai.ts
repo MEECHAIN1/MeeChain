@@ -1,5 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { logger } from "./logger";
 
 export const askOracle = async (prompt: string, telemetry: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -28,9 +29,10 @@ export const askOracle = async (prompt: string, telemetry: any) => {
     });
 
     const text = response.text || "Oracle ตกอยู่ในห้วงสมาธิ... โปรดลองใหม่ภายหลัง";
+    logger.info('Oracle consultation successful', { prompt });
     return text;
   } catch (error: any) {
-    console.error("Oracle Error:", error);
+    logger.error("Oracle AI Consultation Error", { error, prompt });
     return "Neural Link ขัดข้อง: สัญญาณจากระบบหลักไม่เสถียร โปรดตรวจสอบ API Key หรือลองใหม่อีกครั้ง";
   }
 };

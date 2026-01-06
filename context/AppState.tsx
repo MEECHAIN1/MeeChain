@@ -8,6 +8,8 @@ import { getNFTBalance } from '../lib/services/nft';
 import { getTokenBalance } from '../lib/services/token';
 import { getRewardRate, getStakedBalance } from '../lib/services/staking';
 import { generateMeeBotName } from '../lib/meeBotNames';
+import { logger } from '../lib/logger';
+import { CONFIG } from '../lib/config';
 
 interface AppContextType {
   state: UserState;
@@ -22,15 +24,11 @@ interface AppContextType {
   removeNotification: (id: string) => void;
   toggleBotStaking: (botId: string) => Promise<void>;
   addBot: (bot: MeeBot) => void;
-  updateLuckiness: (amount: number) => void;
+  updateLuckiness: (amount: number, reset?: boolean) => void;
   spendGems: (amount: number) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
-
-const BOTS_STORAGE_KEY = 'meebot_collective_data_v2';
-const GALLERY_FILTER_KEY = 'meebot_gallery_filter_v2';
-const LUCKINESS_KEY = 'meebot_luckiness_progress_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
@@ -38,9 +36,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { disconnectAsync } = useDisconnect();
 
   const [state, setState] = useState<UserState>(() => {
-    const savedBots = localStorage.getItem(BOTS_STORAGE_KEY);
-    const savedFilter = localStorage.getItem(GALLERY_FILTER_KEY) || 'All';
-    const savedLuck = localStorage.getItem(LUCKINESS_KEY);
+    const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
+    const savedFilter = localStorage.getItem(CONFIG.STORAGE_KEYS.FILTER) || 'All';
+    const savedLuck = localStorage.getItem(CONFIG.STORAGE_KEYS.LUCKINESS);
     return {
       account: null,
       chainId: null,
@@ -61,7 +59,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         staked: '0',
         nftCount: 0,
         rewardRate: '0',
-        gems: 250,
+        gems: 250, 
         luckiness: savedLuck ? parseInt(savedLuck) : 5
       },
       myBots: savedBots ? JSON.parse(savedBots) : []
@@ -71,20 +69,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(BOTS_STORAGE_KEY, JSON.stringify(state.myBots));
+    localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
   }, [state.myBots]);
 
   useEffect(() => {
-    localStorage.setItem(GALLERY_FILTER_KEY, state.galleryFilter);
+    localStorage.setItem(CONFIG.STORAGE_KEYS.FILTER, state.galleryFilter);
   }, [state.galleryFilter]);
 
   useEffect(() => {
-    localStorage.setItem(LUCKINESS_KEY, state.balances.luckiness.toString());
+    localStorage.setItem(CONFIG.STORAGE_KEYS.LUCKINESS, state.balances.luckiness.toString());
   }, [state.balances.luckiness]);
 
   useEffect(() => {
     if (address) {
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
+      logger.info('User wallet connected', { address });
       if (state.myBots.length === 0) {
         const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
@@ -121,14 +120,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         nftCount: prev.balances.nftCount + 1
       }
     }));
+    logger.ritual('MINT', true, { botId: bot.id, rarity: bot.rarity });
   }, []);
 
-  const updateLuckiness = useCallback((amount: number) => {
+  const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
     setState(prev => ({
       ...prev,
       balances: {
         ...prev.balances,
-        luckiness: (prev.balances.luckiness + amount) % 101
+        luckiness: reset ? 0 : Math.min(prev.balances.luckiness + amount, 100)
       }
     }));
   }, []);
@@ -151,25 +151,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return success;
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setState(prev => {
-        const updatedBots = prev.myBots.map(bot => {
-          if (bot.isStaking && bot.stakingStart) {
-            const now = Date.now();
-            const elapsed = (now - bot.stakingStart) / 1000;
-            if (elapsed >= 10) {
-              return { ...bot, energyLevel: bot.energyLevel + 1, stakingStart: now };
-            }
-          }
-          return bot;
-        });
-        return { ...prev, myBots: updatedBots };
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
     setState(prev => ({
       ...prev,
@@ -179,11 +160,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleBotStaking = useCallback(async (botId: string) => {
     setGlobalLoading('staking', true);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 1500));
 
     setState(prev => {
       const botIndex = prev.myBots.findIndex(b => b.id === botId);
-      if (botIndex === -1) return prev;
+      if (botIndex === -1) {
+        logger.error('Failed to toggle staking: Bot not found', { botId });
+        return prev;
+      }
 
       const bot = prev.myBots[botIndex];
       const activating = !bot.isStaking;
@@ -195,17 +179,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stakingStart: activating ? Date.now() : null
       };
 
-      addEvent({
-        type: activating ? 'Staked' : 'Claimed',
-        contract: 'Staking',
-        from: prev.account || '0x0',
-        tokenId: bot.id,
-        hash: `0x${Math.random().toString(16).slice(2, 66)}`
-      });
-      notify(activating ? 'success' : 'info', `${activating ? 'Rig Connected' : 'Rig Standby'} - ${bot.name}`);
-
+      logger.ritual('STAKING_TOGGLE', true, { botId, active: activating });
       return { ...prev, myBots: newBots };
     });
+    
     setGlobalLoading('staking', false);
   }, [setGlobalLoading]);
 
@@ -215,12 +192,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       notifications: [...prev.notifications, { id, type, message, timestamp: Date.now() }]
     }));
+    if (type === 'error') logger.error(`Notification Error: ${message}`);
+    
     setTimeout(() => {
       setState(current => ({
         ...current,
         notifications: current.notifications.filter(n => n.id !== id)
       }));
-    }, 4500);
+    }, 5000);
   }, []);
 
   const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
@@ -230,6 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: Date.now(),
     };
     setEvents(prev => [newEvent, ...prev].slice(0, 50));
+    logger.info(`Blockchain Event: ${event.type}`, event);
   }, []);
 
   const setGalleryFilter = useCallback((filter: string) => {
@@ -262,9 +242,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }));
     } catch (e) {
-      console.warn("Ritual Link Sync Jitter:", e);
+      logger.error('Failed to sync balances from chain', e);
     } finally {
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 400));
       setGlobalLoading('balances', false);
     }
   }, [address, setGlobalLoading, state.myBots.length]);
@@ -275,7 +255,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const targetConnector = connector || connectors[0];
       await connectAsync({ connector: targetConnector });
     } catch (err: any) {
-      notify('error', `Link Failed: ${err.message}`);
+      notify('error', `Connection Failed: ${err.message}`);
+      logger.error('Wallet connection failed', err);
     } finally {
       setState(prev => ({ ...prev, isConnecting: false }));
     }
@@ -285,8 +266,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await disconnectAsync();
       setState(prev => ({ ...prev, account: null }));
+      logger.info('User wallet disconnected manually');
     } catch (err: any) {
-      notify('error', 'Severance Failed');
+      notify('error', 'Disconnection Failed');
+      logger.error('Wallet disconnection failed', err);
     }
   };
 

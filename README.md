@@ -17,7 +17,7 @@ MeeChain MeeBot is a high-performance, mystical dashboard designed for the MeeCh
 
 ### 1. Clone & Prepare
 ```bash
-git clone https://github.com/meechain1/meechain-meebot.git
+git clone https://github.com/your-org/meechain-meebot.git
 cd meechain-meebot
 npm install
 ```
