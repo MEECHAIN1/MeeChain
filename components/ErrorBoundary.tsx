@@ -1,9 +1,9 @@
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 import { logger } from '../lib/logger';
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 interface State {
@@ -11,21 +11,33 @@ interface State {
   error: Error | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+/**
+ * Global Error Boundary to catch neural link collapses and UI crashes.
+ * Explicitly extends React.Component with Props and State generics to ensure 'props' and 'state' properties are correctly typed.
+ */
+class ErrorBoundary extends React.Component<Props, State> {
+  // Fix: Explicitly declare state property for the TypeScript compiler to resolve inheritance errors
   public state: State = {
     hasError: false,
     error: null
   };
 
+  constructor(props: Props) {
+    super(props);
+  }
+
+  // Fix: Static method for updating state from errors
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
+  // Fix: Life-cycle method for error side effects
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.critical('Global UI Crash Detected', { error, errorInfo });
   }
 
   public render() {
+    // Fix: Using this.state to check for ritual disruption (error state)
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#05080f] flex items-center justify-center p-6 font-mono">
@@ -54,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // Fix: In React class components, children must be accessed via this.props
+    // Fix: Correctly accessing this.props to render children in the success path
     return this.props.children;
   }
 }

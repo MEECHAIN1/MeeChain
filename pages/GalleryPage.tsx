@@ -4,7 +4,7 @@ import { useApp } from '../context/AppState';
 import { MeeBot } from '../types';
 
 const GalleryPage: React.FC = () => {
-  const { state, setGalleryFilter } = useApp();
+  const { state, setGalleryFilter, setGlobalLoading, refreshBalances } = useApp();
   const [localDropdownOpen, setLocalDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +22,14 @@ const GalleryPage: React.FC = () => {
     if (state.galleryFilter === 'All') return state.myBots;
     return state.myBots.filter(nft => nft.rarity === state.galleryFilter);
   }, [state.myBots, state.galleryFilter]);
+
+  const handleRefreshGallery = async () => {
+    setGlobalLoading('gallery', true);
+    // Simulate deep asset scan
+    await new Promise(r => setTimeout(r, 1500));
+    await refreshBalances();
+    setGlobalLoading('gallery', false);
+  };
 
   const filterOptions = [
     { label: 'ALL UNITS', value: 'All' },
@@ -56,37 +64,46 @@ const GalleryPage: React.FC = () => {
           </p>
         </div>
         
-        <div className="relative" ref={dropdownRef}>
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
           <button 
-            onClick={() => setLocalDropdownOpen(!localDropdownOpen)}
-            className="w-full sm:w-72 bg-black/40 border-2 border-white/5 px-8 py-5 rounded-[2rem] flex items-center justify-between group hover:border-amber-500/30 transition-all shadow-xl font-mono"
+            onClick={handleRefreshGallery}
+            className="w-full sm:w-auto px-8 py-5 glass rounded-[2rem] border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:bg-white/5 transition-all flex items-center gap-3"
           >
-            <span className="text-[10px] font-black text-white tracking-widest uppercase italic">
-              Sector: {state.galleryFilter.toUpperCase()}
-            </span>
-            <span className={`text-amber-500 transition-transform duration-300 ${localDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
+            <span>🔄</span> Scan Sector
           </button>
 
-          {localDropdownOpen && (
-            <div className="absolute top-full left-0 w-full mt-4 glass border border-white/10 rounded-[2rem] overflow-hidden z-[60] shadow-2xl animate-in slide-in-from-top-4 font-mono">
-              <div className="p-2 space-y-1">
-                {filterOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setGalleryFilter(opt.value);
-                      setLocalDropdownOpen(false);
-                    }}
-                    className={`w-full px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between hover:bg-white/5 ${
-                      state.galleryFilter === opt.value ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400'
-                    }`}
-                  >
-                    <span className={opt.color || ''}>{opt.label}</span>
-                  </button>
-                ))}
+          <div className="relative w-full sm:w-72" ref={dropdownRef}>
+            <button 
+              onClick={() => setLocalDropdownOpen(!localDropdownOpen)}
+              className="w-full bg-black/40 border-2 border-white/5 px-8 py-5 rounded-[2rem] flex items-center justify-between group hover:border-amber-500/30 transition-all shadow-xl font-mono"
+            >
+              <span className="text-[10px] font-black text-white tracking-widest uppercase italic">
+                Sector: {state.galleryFilter.toUpperCase()}
+              </span>
+              <span className={`text-amber-500 transition-transform duration-300 ${localDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+
+            {localDropdownOpen && (
+              <div className="absolute top-full left-0 w-full mt-4 glass border border-white/10 rounded-[2rem] overflow-hidden z-[60] shadow-2xl animate-in slide-in-from-top-4 font-mono">
+                <div className="p-2 space-y-1">
+                  {filterOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setGalleryFilter(opt.value);
+                        setLocalDropdownOpen(false);
+                      }}
+                      className={`w-full px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between hover:bg-white/5 ${
+                        state.galleryFilter === opt.value ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400'
+                      }`}
+                    >
+                      <span className={opt.color || ''}>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 

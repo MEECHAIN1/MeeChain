@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppState';
 import { getSwapQuote, performSwap } from '../lib/services/swap';
 import { ADRS } from '../lib/contracts';
 import { triggerWarpRitual, triggerSuccessRitual } from '../lib/rituals';
-import { parseEther } from 'viem';
+import { logger } from '../lib/logger';
 
 const SwapPage: React.FC = () => {
   const { state, notify, setGlobalLoading, refreshBalances, addEvent } = useApp();
@@ -35,7 +34,6 @@ const SwapPage: React.FC = () => {
         setToAmount('0');
         return;
       }
-      // Simple mock quote if tokens are same, otherwise fetch
       if (fromToken.symbol === toToken.symbol) {
         setToAmount(fromAmount);
         return;
@@ -55,6 +53,15 @@ const SwapPage: React.FC = () => {
     setStatus({ type: 'loading', msg: `Initiating Flux Conversion: ${fromAmount} ${fromToken.symbol} → ${toToken.symbol}...` });
     triggerWarpRitual();
 
+    // Telemetry: Phase START
+    logger.ritual('SWAP_CONVERSION', true, {
+      phase: 'START',
+      from: fromToken.symbol,
+      to: toToken.symbol,
+      amountIn: fromAmount,
+      slippage
+    });
+
     try {
       const hash = await performSwap(
         fromAmount, 
@@ -71,11 +78,24 @@ const SwapPage: React.FC = () => {
         hash
       });
 
+      // Telemetry: Phase SUCCESS
+      logger.ritual('SWAP_CONVERSION', true, {
+        phase: 'SUCCESS',
+        txHash: hash,
+        amountOut: toAmount
+      });
+
       triggerSuccessRitual();
       setStatus({ type: 'success', msg: `Conversion Ritual Manifested! Received ${toAmount} ${toToken.symbol}.` });
       setFromAmount('');
       await refreshBalances();
-    } catch (err) {
+    } catch (err: any) {
+      logger.error('Swap Ritual Disrupted', err);
+      // Telemetry: Phase FAILURE
+      logger.ritual('SWAP_CONVERSION', false, {
+        phase: 'FAILURE',
+        error: err.message
+      });
       setStatus({ type: 'error', msg: 'Flux conversion failed due to quantum turbulence.' });
     } finally {
       setGlobalLoading('general', false);
@@ -102,7 +122,6 @@ const SwapPage: React.FC = () => {
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
         
         <div className="relative z-10 space-y-4 sm:space-y-6">
-          {/* Input Panel */}
           <div className="p-6 sm:p-8 bg-white/[0.03] border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] space-y-4 hover:border-white/10 transition-all group">
             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
               <span>Origin (From)</span>
@@ -130,7 +149,6 @@ const SwapPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Switch Button */}
           <div className="flex justify-center -my-6 sm:-my-8 relative z-20">
             <button 
               onClick={switchTokens}
@@ -140,7 +158,6 @@ const SwapPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Output Panel */}
           <div className="p-6 sm:p-8 bg-white/[0.03] border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] space-y-4 hover:border-white/10 transition-all">
             <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
               <span>Target (To)</span>
@@ -163,7 +180,6 @@ const SwapPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Button */}
           <button 
             onClick={handleSwap}
             disabled={!fromAmount || state.loadingStates.general}

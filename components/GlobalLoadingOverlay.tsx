@@ -4,16 +4,26 @@ import { useApp } from '../context/AppState';
 
 const GlobalLoadingOverlay: React.FC = () => {
   const { state } = useApp();
-  const { staking, claiming, general, balances } = state.loadingStates;
+  const { staking, claiming, general, balances, oracle, gallery } = state.loadingStates;
+  const { isConnecting } = state;
   
-  const active = staking || claiming || general || (balances && state.account === null);
+  // Determine if the global blocking overlay should be active
+  // We block on: 
+  // 1. Initial balance fetch (account null + balances loading)
+  // 2. Wallet connection
+  // 3. Any critical ritual (staking, claiming, general, gallery)
+  // 4. Oracle consultation (optional, but requested for "all async operations")
+  const active = isConnecting || staking || claiming || general || gallery || oracle || (balances && state.account === null);
 
   const status = useMemo(() => {
+    if (isConnecting) return { title: 'Identity Link', desc: 'Synchronizing Digital Signature...', icon: '🔗' };
     if (staking) return { title: 'Neural Core Sync', desc: 'Activating Manifestation Rig...', icon: '⚡' };
     if (claiming) return { title: 'Energy Harvest', desc: 'Extracting MCB Flux from Ledger...', icon: '🌾' };
-    if (balances) return { title: 'Telemetry Sync', desc: 'Calibrating Neural Balances...', icon: '📡' };
+    if (balances && state.account === null) return { title: 'Initial Calibration', desc: 'Scanning Substrate Telemetry...', icon: '📡' };
+    if (oracle) return { title: 'Void Consultation', desc: 'Channelling Oracle Prophecies...', icon: '🔮' };
+    if (gallery) return { title: 'Asset Scan', desc: 'Visualizing Mechanical Collective...', icon: '🖼️' };
     return { title: 'Processing Ritual', desc: 'Submitting Data Packet to RitualChain...', icon: '🌀' };
-  }, [staking, claiming, balances]);
+  }, [isConnecting, staking, claiming, balances, state.account, oracle, gallery]);
 
   if (!active) return null;
 

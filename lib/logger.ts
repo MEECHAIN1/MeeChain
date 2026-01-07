@@ -1,4 +1,3 @@
-
 /**
  * MeeChain MeeBot Centralized Logger
  * Interfaces with Rollbar for systematic error tracking and monitoring.
@@ -39,12 +38,31 @@ export const logger = {
     }
   },
 
+  /**
+   * Performs a "Ritual Stamp" for systematic telemetry.
+   * @param ritualName - The name of the ritual (e.g., 'SUMMON', 'STAKE')
+   * @param success - Whether the ritual reached manifestation
+   * @param data - The Telemetry Context (Neural Data Packet)
+   */
   ritual: (ritualName: string, success: boolean, data?: any) => {
-    const status = success ? 'SUCCESS' : 'FAILED';
-    const msg = `Ritual ${ritualName} performed: ${status}`;
-    console.log(`[RITUAL] ${msg}`, data);
+    const status = success ? 'MANIFESTED' : 'DISRUPTED';
+    const msg = `[RITUAL] ${ritualName}: ${status}`;
+    
+    // Enrich with standard telemetry if not present
+    const enrichedData = {
+      timestamp: Date.now(),
+      protocolVersion: '4.2.0',
+      ...data
+    };
+
+    console.log(`${msg}`, enrichedData);
+    
     if (window.Rollbar) {
-      window.Rollbar.info(msg, { ritual: ritualName, success, ...data });
+      if (success) {
+        window.Rollbar.info(msg, enrichedData);
+      } else {
+        window.Rollbar.warning(msg, enrichedData);
+      }
     }
   }
 };
