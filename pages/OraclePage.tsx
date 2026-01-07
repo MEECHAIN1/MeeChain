@@ -27,8 +27,14 @@ const TypewriterText = memo(({ text, onComplete }: { text: string, onComplete?: 
 
 const OraclePage: React.FC = () => {
   const { state, notify, events, setGlobalLoading } = useApp();
-  const [messages, setMessages] = useState<{role: 'user' | 'oracle', text: string, finished?: boolean}[]>([
-    { role: 'oracle', text: 'ยินดีต้อนรับสู่ Oracle Sanctum... ข้าคือผู้เฝ้ามอง Eternal Ledger แห่ง MeeChain เจ้ามีความประสงค์จะรับคำทำนายหรือปัญญาในเรื่องใด?', finished: false }
+  // State updated to store grounding sources for each message
+  const [messages, setMessages] = useState<{role: 'user' | 'oracle', text: string, finished?: boolean, sources?: any[]}[]>([
+    { 
+      role: 'oracle', 
+      text: 'ยินดีต้อนรับสู่ Oracle Sanctum... ข้าคือผู้เฝ้ามอง Eternal Ledger แห่ง MeeChain เจ้ามีความประสงค์จะรับคำทำนายหรือปัญญาในเรื่องใด?', 
+      finished: false,
+      sources: []
+    }
   ]);
   const [input, setInput] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +55,7 @@ const OraclePage: React.FC = () => {
     if (!textToSend.trim() || isTyping) return;
     
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: textToSend, finished: true }]);
+    setMessages(prev => [...prev, { role: 'user', text: textToSend, finished: true, sources: [] }]);
     setGlobalLoading('oracle', true);
     triggerCelestialRitual();
 
@@ -62,10 +68,11 @@ const OraclePage: React.FC = () => {
     };
 
     try {
-      const response = await askOracle(textToSend, telemetry);
-      setMessages(prev => [...prev, { role: 'oracle', text: response, finished: false }]);
+      // Destructure text and sources from the oracle response
+      const { text, sources } = await askOracle(textToSend, telemetry);
+      setMessages(prev => [...prev, { role: 'oracle', text, finished: false, sources }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'oracle', text: "สายใย Neural Link ขัดข้อง... โปรดลองอีกครั้ง", finished: true }]);
+      setMessages(prev => [...prev, { role: 'oracle', text: "สายใย Neural Link ขัดข้อง... โปรดลองอีกครั้ง", finished: true, sources: [] }]);
     } finally {
       setGlobalLoading('oracle', false);
     }
@@ -143,6 +150,33 @@ const OraclePage: React.FC = () => {
                       <span className="whitespace-pre-wrap">{msg.text}</span>
                     )}
                   </div>
+
+                  {/* Grounding sources are displayed here if available after typing completes */}
+                  {msg.sources && msg.sources.length > 0 && msg.finished && (
+                    <div className="mt-6 pt-4 border-t border-white/10 space-y-3">
+                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                        <span className="text-amber-500 text-base">🌐</span> Neural References
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {msg.sources.map((chunk: any, idx: number) => {
+                          const url = chunk.web?.uri || chunk.web?.url;
+                          const title = chunk.web?.title || 'Source';
+                          if (!url) return null;
+                          return (
+                            <a 
+                              key={idx} 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-xl transition-all text-amber-500 font-mono truncate max-w-[240px] shadow-sm hover:border-amber-500/30"
+                            >
+                              {title} ↗
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
