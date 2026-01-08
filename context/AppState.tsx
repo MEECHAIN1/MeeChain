@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../../types';
+import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from '../lib/viemClient';
