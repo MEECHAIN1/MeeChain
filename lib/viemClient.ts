@@ -7,9 +7,8 @@ export { meechain };
 
 export const client = createPublicClient({ 
   chain: meechain,
-  transport: http(PRIMARY_RPC, ({
+  transport: http(PRIMARY_RPC,
     timeout: 10000,
     retryCount: 2,
     retryDelay: 1000,
-  })
- });
+  });
