@@ -110,7 +110,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [address]);
 
-  const addBot = useCallback((bot: MeeBot) => {
+  export const addBot = useCallback((bot: MeeBot) => {
     setState(prev => ({
       ...prev,
       myBots: [bot, ...prev.myBots],
@@ -121,7 +121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, []);
 
-  const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
+  export const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
     setState(prev => ({
       ...prev,
       balances: {
@@ -131,7 +131,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, []);
 
-  const spendGems = useCallback((amount: number) => {
+  export const spendGems = useCallback((amount: number) => {
     let success = false;
     setState(prev => {
       if (prev.balances.gems >= amount) {
@@ -149,18 +149,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return success;
   }, []);
 
-  const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
+ export const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
     setState(prev => ({
       ...prev,
       loadingStates: { ...prev.loadingStates, [key]: isLoading }
     }));
   }, []);
 
-  const toggleBotStaking = useCallback(async (botId: string) => {
+ export const toggleBotStaking = useCallback(async (botId: string) => {
     setGlobalLoading('staking', true);
     
     // Find bot for telemetry
-    const targetBot = state.myBots.find(b => b.id === botId);
+   export const targetBot = state.myBots.find(b => b.id === botId);
     if (targetBot) {
       logger.ritual('INFUSION_STAKING', true, {
         phase: 'START',
