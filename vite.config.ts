@@ -17,9 +17,6 @@ import react from '@vitejs/plugin-react'; // Ensure this import is correct
     },
     plugins: [react()],
     define: {
-      'import.meta.env.RPC_URL': JSON.stringify(env.RPC_URL),
-      'import.meta.env.WALLETCONNECT_PROJECT_ID': JSON.stringify(env.WALLETCONNECT_PROJECT_ID),
-      'import.meta.env.API_KEY': JSON.stringify(env.API_KEY),
     },
     build: {
       sourcemap: true,
