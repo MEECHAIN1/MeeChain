@@ -1,14 +1,15 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
+import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../../../types';
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { client } from '../lib/viemClient';
-import { getNFTBalance } from '../lib/services/nft';
-import { getTokenBalance } from '../lib/services/token';
-import { getRewardRate, getStakedBalance } from '../lib/services/staking';
-import { generateMeeBotName } from '../lib/meeBotNames';
-import { logger } from '../lib/logger';
-import { CONFIG } from '../lib/config';
+import { client } from '../../lib/viemClient';
+import { getNFTBalance } from '../../lib/services/nft';
+import { getTokenBalance } from '../../lib/services/token';
+import { getRewardRate, getStakedBalance } from '../../lib/services/staking';
+import { generateMeeBotName } from '../../lib/meeBotNames';
+import { logger } from '../../lib/logger';
+import { CONFIG } from '../../lib/config';
 
 interface AppContextType {
   state: UserState;
@@ -27,14 +28,14 @@ interface AppContextType {
   spendGems: (amount: number) => boolean;
 }
 
- const AppContext = createContext<AppContextType | undefined> (undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
- export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
 
-    const [state, setState] = useState<UserState>(() => {
+  const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
     const savedFilter = localStorage.getItem(CONFIG.STORAGE_KEYS.FILTER) || 'All';
     const savedLuck = localStorage.getItem(CONFIG.STORAGE_KEYS.LUCKINESS);
@@ -65,7 +66,7 @@ interface AppContextType {
     };
   });
 
-  const [events, setEvents] = useState<BlockchainEvent[] => ([]);
+  const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
@@ -78,11 +79,13 @@ interface AppContextType {
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.LUCKINESS, state.balances.luckiness.toString());
   }, [state.balances.luckiness]);
-   
-useEffect(() => {
-    account: address ? (address as `0x${string}`) : => null;
+
+  useEffect(() => {
+    if (address) {
+      setState(prev => ({ ...prev, account: address as `0x${string}` }));
+      logger.info('User wallet connected', { address });
       if (state.myBots.length === 0) {
-          const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
+        const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
           const rarity = i === 0 ? "Epic" : "Common";
           return {
@@ -98,18 +101,14 @@ useEffect(() => {
               speed: 40 + Math.random() * 20,
               intel: 40 + Math.random() * 20
             },
-const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading:  boolean) => {
-    setState(prev => ({
-      ...prev,
-      loadingStates: { ...prev.loadingStates, [key]: isLoading }
-    }));
-  }, []);
-    components: i === 0
+            components: i === 0
               ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
               : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
           };
-         });
+        });
+        setState(prev => ({ ...prev, myBots: initialBots }));
       }
+    }
   }, [address]);
 
   const addBot = useCallback((bot: MeeBot) => {
@@ -121,6 +120,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
         nftCount: prev.balances.nftCount + 1
       }
     }));
+    logger.ritual('MINT', true, { botId: bot.id, rarity: bot.rarity });
   }, []);
 
   const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
@@ -151,17 +151,15 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     return success;
   }, []);
 
-    // Find bot for telemetry
-   const targetBot = state.myBots.find(b => b.id === botId);
-    if (targetBot) {
-      logger.ritual('INFUSION_STAKING', => true, {
-        phase: 'START',
-        botId,
-        rarity: targetBot.rarity,
-        action: targetBot.isStaking ? 'DEACTIVATE' : 'ACTIVATE'
-      });
-    }
+  const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
+    setState(prev => ({
+      ...prev,
+      loadingStates: { ...prev.loadingStates, [key]: isLoading }
+    }));
+  }, []);
 
+  const toggleBotStaking = useCallback(async (botId: string) => {
+    setGlobalLoading('staking', true);
     await new Promise(r => setTimeout(r, 1500));
 
     setState(prev => {
@@ -174,27 +172,21 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
       const bot = prev.myBots[botIndex];
       const activating = !bot.isStaking;
       
-     const newBots = [...prev.myBots];
+      const newBots = [...prev.myBots];
       newBots[botIndex] = {
         ...bot,
         isStaking: activating,
-        stakingStart: activating ? Date.now() : => null;
+        stakingStart: activating ? Date.now() : null
       };
 
-      logger.ritual('INFUSION_STAKING', => true, { 
-        phase: 'SUCCESS',
-        botId, 
-        active: activating,
-        energyLevel: bot.energyLevel 
-      });
-      
+      logger.ritual('STAKING_TOGGLE', true, { botId, active: activating });
       return { ...prev, myBots: newBots };
     });
     
     setGlobalLoading('staking', false);
-  }, [setGlobalLoading, state.myBots]);
+  }, [setGlobalLoading]);
 
-    const notify = useCallback((type: RitualNotification['type'], message: string) => {
+  const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
       ...prev,
@@ -210,7 +202,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     }, 5000);
   }, []);
 
-    const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
+  const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
     const newEvent: BlockchainEvent = {
       ...event,
       id: Math.random().toString(36).substr(2, 9),
@@ -228,7 +220,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
-     const results = await Promise.allSettled([
+      const results = await Promise.allSettled([
         client.getBalance({ address }),
         getTokenBalance(address),
         getStakedBalance(address),
@@ -236,7 +228,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
         getRewardRate()
       ]);
 
-     const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
+      const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
 
       setState(prev => ({
         ...prev,
@@ -257,7 +249,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     }
   }, [address, setGlobalLoading, state.myBots.length]);
 
-   const connectWallet = async (connector?: any) => {
+  const connectWallet = async (connector?: any) => {
     setState(prev => ({ ...prev, isConnecting: true }));
     try {
       const targetConnector = connector || connectors[0];
@@ -270,7 +262,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     }
   };
 
-   const disconnectWallet = async () => {
+  const disconnectWallet = async () => {
     try {
       await disconnectAsync();
       setState(prev => ({ ...prev, account: null }));
@@ -281,7 +273,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     }
   };
 
-   const removeNotification = useCallback((id: string) => {
+  const removeNotification = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
       notifications: prev.notifications.filter(n => n.id !== id)
