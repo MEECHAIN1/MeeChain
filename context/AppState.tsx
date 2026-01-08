@@ -236,7 +236,7 @@ export  const refreshBalances = useCallback(async () => {
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
-      const results = await Promise.allSettled([
+     export  const results = await Promise.allSettled([
         client.getBalance({ address }),
         getTokenBalance(address),
         getStakedBalance(address),
