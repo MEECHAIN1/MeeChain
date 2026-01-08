@@ -30,7 +30,6 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
-
 export default App;
 return (
   <WagmiProvider config={config}>
@@ -45,3 +44,4 @@ return (
     </QueryClientProvider>
   </WagmiProvider>
 );
+  export default App;
