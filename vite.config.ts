@@ -24,9 +24,9 @@ import react from '@vitejs/plugin-react'; // Ensure this import is correct
     build: {
       sourcemap: true,
       rollupOptions: {
-     // output: {
+      output: {
           },
         }
       }
-    }//
+    }
   );
