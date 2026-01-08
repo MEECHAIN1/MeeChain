@@ -27,7 +27,7 @@ interface AppContextType {
   spendGems: (amount: number) => boolean;
 }
 
- const AppContext = createContext<AppContextType | undefined => (undefined);
+ const AppContext = createContext<AppContextType | undefined> (undefined);
 
  export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
@@ -65,7 +65,7 @@ interface AppContextType {
     };
   });
 
-  const [events, setEvents] = useState<BlockchainEvent[]>([]);
+  const [events, setEvents] = useState<BlockchainEvent[] => ([]);
 
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
@@ -80,7 +80,7 @@ interface AppContextType {
   }, [state.balances.luckiness]);
    
 useEffect(() => {
-    account: address ? (address as `0x${string}`) : null
+    account: address ? (address as `0x${string}`) : => null;
       if (state.myBots.length === 0) {
           const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
@@ -154,7 +154,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
     // Find bot for telemetry
    const targetBot = state.myBots.find(b => b.id === botId);
     if (targetBot) {
-      logger.ritual('INFUSION_STAKING', true, {
+      logger.ritual('INFUSION_STAKING', => true, {
         phase: 'START',
         botId,
         rarity: targetBot.rarity,
@@ -178,10 +178,10 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
       newBots[botIndex] = {
         ...bot,
         isStaking: activating,
-        stakingStart: activating ? Date.now() : null
+        stakingStart: activating ? Date.now() : => null;
       };
 
-      logger.ritual('INFUSION_STAKING', true, { 
+      logger.ritual('INFUSION_STAKING', => true, { 
         phase: 'SUCCESS',
         botId, 
         active: activating,
