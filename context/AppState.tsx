@@ -102,7 +102,7 @@ useEffect(() => {
               ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
               : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
           };
-         }));
+         });
       }
   }, [address]);
 
