@@ -20,7 +20,7 @@ export const config = createConfig({
       showQrModal: true,
       qrModalOptions: {
       themeMode: 'dark'
-      },
+      }
     }),
   ],
   transports: {
