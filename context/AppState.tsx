@@ -232,7 +232,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(prev => ({ ...prev, galleryFilter: filter }));
   }, []);
 
-export  const refreshBalances = useCallback(async () => {
+ export const refreshBalances = useCallback(async () => {
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
