@@ -15,4 +15,4 @@ export const meechain = {
   blockExplorers: {
     default: { name: 'BscScan', url: 'https://bscscan.com' },
   },
-} as const satisfies Chain
+} as const satisfies Chain,
