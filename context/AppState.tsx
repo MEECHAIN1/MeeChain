@@ -120,7 +120,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }));
   }, []);
 
-  export const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
+  const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
     setState(prev => ({
       ...prev,
       balances: {
