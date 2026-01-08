@@ -22,7 +22,7 @@ import react from '@vitejs/plugin-react'; // Ensure this import is correct
       'import.meta.env.VITE_API_KEY': JSON.stringify(env.VITE_API_KEY),
     },
     build: {
-      sourcemap: false,
+      sourcemap: true,
       rollupOptions: {
         output: {
           manualChunks: {
