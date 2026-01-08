@@ -28,12 +28,12 @@ interface AppContextType {
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
 
-  export const [state, setState] = useState<UserState>(() => {
+    const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
     const savedFilter = localStorage.getItem(CONFIG.STORAGE_KEYS.FILTER) || 'All';
     const savedLuck = localStorage.getItem(CONFIG.STORAGE_KEYS.LUCKINESS);
