@@ -4,7 +4,7 @@ import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from 'viemClient';
 import { getTokenBalance } from 'services/token';
-import { getRewardRate, getStakedBalance } from './lib/services/staking';
+import { getRewardRate, getStakedBalance } from 'services/staking';
 import { generateMeeBotName } from './lib/meeBotNames';
 import { logger } from './lib/logger';
 import { config } from './lib/config';
