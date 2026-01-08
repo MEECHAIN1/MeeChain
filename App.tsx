@@ -36,7 +36,7 @@ const App: React.FC = () => {
         <AppProvider>
           <Router>
             <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">
-              <GlobalLoadingOverlay />
+            // <GlobalLoadingOverlay /> //
               <RitualToasts />
               <NetworkBanner />
               <Navbar />
