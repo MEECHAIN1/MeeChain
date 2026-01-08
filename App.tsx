@@ -24,11 +24,8 @@ const queryClient = new QueryClient();
     queries: {
       retry: 2,
       refetchOnWindowFocus: true
-    },
-  },
-});
-
-});
+    }
+   };
 
 // 1. ฟังก์ชัน App ต้องเริ่มต้นด้วยปีกกา {
 const App: React.FC = () => {
