@@ -18,9 +18,8 @@ import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
-// ... (ส่วนการ import ด้านบนคงเดิม)
 
-const queryClient = new QueryClient({
+const queryClient = new QueryClient();
   // ... (options คงเดิม)
 });
 
@@ -31,8 +30,20 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
-            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">
-               {/* ... (เนื้อหาภายในคงเดิม) ... */}
+            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">              <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10">
+                <Routes>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/mint" element={<MintPage />} />
+                  <Route path="/summon" element={<SummonPage />} />
+                  <Route path="/gallery" element={<GalleryPage />} />
+                  <Route path="/staking" element={<StakingPage />} />
+                  <Route path="/swap" element={<SwapPage />} />
+                  <Route path="/oracle" element={<OraclePage />} />
+                  <Route path="/logs" element={<EventLogPage />} />
+                  <Route path="/debug" element={<TailwindTestPage />} />
+                </Routes>
+              </main>
+            
             </div>
           </Router>
         </AppProvider>
