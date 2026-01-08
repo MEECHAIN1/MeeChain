@@ -5,6 +5,7 @@ import { buffer } from 'buffer';
 import ErrorBoundary from './components/ErrorBoundary'; 
 window.global = window;
 window.buffer = buffer;
+import './index.css';
 
 const rootElement = document.getElementById('root');
 
