@@ -58,4 +58,4 @@ const App: React.FC = () => {
   );
 };
 
-export { AppProvider };
+export default App;
