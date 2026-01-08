@@ -81,8 +81,7 @@ interface AppContextType {
    
 useEffect(() => {
     account: address ? (address as `0x${string}`) : null
-         setState(prev => ({ ...prev,
-                                 if (state.myBots.length === 0) {
+      if (state.myBots.length === 0) {
           const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
           const rarity = i === 0 ? "Epic" : "Common";
