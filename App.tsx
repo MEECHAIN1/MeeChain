@@ -19,8 +19,6 @@ import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
 
-const [state, setState]  useState<UserState>(...) // ลืมเครื่องหมาย =
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
