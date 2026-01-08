@@ -3,7 +3,7 @@ import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from '@/viemClient';
-import { getTokenBalance } from 'services/token';
+import { getTokenBalance } from '@/services/token';
 import { getRewardRate, getStakedBalance } from 'services/staking';
 import { generateMeeBotName } from 'meeBotNames';
 import { logger } from 'logger';
