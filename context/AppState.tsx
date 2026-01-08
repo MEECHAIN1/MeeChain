@@ -155,7 +155,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }));
   }, []);
 
- export const toggleBotStaking = useCallback(async (botId: string) => {
+ const toggleBotStaking = useCallback(async (botId: string) => {
     setGlobalLoading('staking', true);
     
     // Find bot for telemetry
