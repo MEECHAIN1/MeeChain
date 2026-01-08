@@ -1,0 +1,25 @@
+[build]
+  # คำสั่งสำหรับสร้างไฟล์โปรเจกต์ (ปรับตาม package.json ของคุณ)
+  command = "npm run build"
+  # โฟลเดอร์ที่ได้หลังจาก build เสร็จ (Vite ปกติใช้ dist)
+  publish = "dist"
+
+[[redirects]]
+  # สำคัญมากสำหรับ React Router: 
+  # ทำให้เวลาเรากด Refresh ในหน้าอื่น (เช่น /mint) แล้วไม่เจอ 404
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # ป้องกันการถูกโจมตีแบบ Clickjacking
+    X-Frame-Options = "DENY"
+    # ป้องกันการเดาประเภทไฟล์ (MIME sniffing)
+    X-Content-Type-Options = "nosniff"
+    # นโยบายความปลอดภัยของเนื้อหา (ปรับแต่งตามความต้องการ Web3)
+    # หมายเหตุ: อาจต้องปรับเพิ่มถ้ามีการดึงรูป NFT จากภายนอก
+    Content-Security-Policy = "upgrade-insecure-requests;"
+    # อนุญาตให้เบราว์เซอร์เข้าถึงข้อมูลข้ามโดเมน (CORS) สำหรับ RPC Node
+    Access-Control-Allow-Origin = "*"
