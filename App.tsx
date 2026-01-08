@@ -17,23 +17,31 @@ import OraclePage from './pages/OraclePage';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
-import { CONFIG } from './lib/config';
 
-const queryClient = new QueryClient();
+// แก้ไข QueryClient ให้ถูกต้อง
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-    }
-   };
+    },
+  },
+});
 
-// 1. ฟังก์ชัน App ต้องเริ่มต้นด้วยปีกกา {
 const App: React.FC = () => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
-            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">         <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10"
+            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe bg-[#05080f]">
+              <GlobalLoadingOverlay />
+              <RitualToasts />
+              <NetworkBanner />
+              <Navbar />
+              
+              <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10">
+                {/* ต้องมี Routes ครอบ Route เสมอ */}
+                <Routes>
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/mint" element={<MintPage />} />
                   <Route path="/summon" element={<SummonPage />} />
@@ -43,14 +51,18 @@ const App: React.FC = () => {
                   <Route path="/oracle" element={<OraclePage />} />
                   <Route path="/logs" element={<EventLogPage />} />
                   <Route path="/debug" element={<TailwindTestPage />} />
+                </Routes>
               </main>
+
+              <footer className="p-6 text-center text-[10px] text-slate-600 uppercase tracking-widest border-t border-white/5">
+                MeeBot Protocol Integrity Secured
+              </footer>
             </div>
           </Router>
         </AppProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
-}; // 2. ปิดปีกกาของฟังก์ชัน App ตรงนี้
+};
 
-// 3. ย้าย Export default มาไว้ล่างสุด
 export default App;
