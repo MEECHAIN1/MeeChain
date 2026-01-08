@@ -1,23 +1,30 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { defineChain } from 'viem';
+import { http, createConfig } from 'wagmi';
+import { meechain } from './viemClient';
+import { injected, walletConnect } from 'wagmi/connectors';
 
-// Define the RitualChain (MeeChain) ⚡
-export const ritualChain = defineChain({
-  id: 13390,
-  name: "RitualChain Local",
-  nativeCurrency: { name: "MeeBot Coin", symbol: "MCB", decimals: 18 },
-  rpcUrls: {
-    default: { http: ["http://127.0.0.1:8545"] }
+const metadata = {
+  name: 'MeeBot Chain',
+  description: 'MeeBot Ecosystem Ritual Portal',
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://127.0.0.1:8545',
+  icons: ['https://avatars.githubusercontent.com/u/37784886'],
+};
+
+// เปลี่ยนชื่อจาก config เป็น wagmiConfig เพื่อให้ตรงกับ App.tsx
+export const wagmiConfig = createConfig({
+  chains: [meechain as any],
+  multiInjectedProviderDiscovery: true,
+  connectors: [
+    injected(),
+    walletConnect({
+      projectId: 'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96',
+      metadata,
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: 'dark',
+      },
+    }),
+  ],
+  transports: {
+    [meechain.id]: http(),
   },
-  blockExplorers: {
-    default: { name: "RitualScan", url: "https://localhost:3000" }
-  }
-});
-
-// Supported chains
-export const config = getDefaultConfig({
-  appName: "RitualChain",
-  projectId: "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
-  chains: [ritualChain],
-  ssr: false,
 });
