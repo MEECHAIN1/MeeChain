@@ -7,9 +7,9 @@ const PRIMARY_RPC = "https://bsc-dataseed.binance.org/";
 
 export { meechain };
 
-export const client = createPublicClient({
+export const client = createPublicClient({ 
   chain: meechain,
-  transport: http(PRIMARY_RPC, {
+  transport: http(PRIMARY_RPC), {
     timeout: 10000,
     retryCount: 2,
     retryDelay: 1000,
