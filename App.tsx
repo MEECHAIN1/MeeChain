@@ -35,7 +35,7 @@ const App: React.FC = () => {
           <Router>
             <div className="min-h-screen flex flex-col bg-[#05080f] text-white">
               {/* ตรวจสอบว่า Navbar และ Overlay อยู่ในลำดับที่ถูกต้อง */}
-            //  <GlobalLoadingOverlay />
+            <GlobalLoadingOverlay />
               <Navbar />
               <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-10">
                 <Routes>
