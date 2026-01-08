@@ -80,8 +80,9 @@ interface AppContextType {
   }, [state.balances.luckiness]);
    
 useEffect(() => {
-    account: address ? (address as `0x${string}`) : null   }));
-      if (state.myBots.length === 0) {
+    account: address ? (address as `0x${string}`) : null
+         setState(prev => ({ ...prev,
+                                 if (state.myBots.length === 0) {
           const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
           const rarity = i === 0 ? "Epic" : "Common";
@@ -102,10 +103,8 @@ useEffect(() => {
               ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
               : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
           };
-        });
-         setState(prev => ({ ...prev,  }));
+         }));
       }
-    }
   }, [address]);
 
   const addBot = useCallback((bot: MeeBot) => {
