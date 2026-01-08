@@ -148,7 +148,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     return success;
   }, []);
 
- export const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
+ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
     setState(prev => ({
       ...prev,
       loadingStates: { ...prev.loadingStates, [key]: isLoading }
