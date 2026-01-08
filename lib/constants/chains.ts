@@ -2,7 +2,7 @@ import { type Chain } from 'viem'
 
 export const meechain = {
   id: 56, // ID ของ BSC
-  name: 'MeeChain',
+  name: 'meechain',
   nativeCurrency: {
     decimals: 18,
     name: 'BNB',
