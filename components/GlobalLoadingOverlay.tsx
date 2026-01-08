@@ -13,7 +13,7 @@ const GlobalLoadingOverlay: React.FC = () => {
   // 2. Wallet connection
   // 3. Any critical ritual (staking, claiming, general, gallery)
   // 4. Oracle consultation (optional, but requested for "all async operations")
-  // const active = isConnecting || staking || claiming || general || gallery || oracle || (balances && state.account === null);
+ const active = isConnecting || staking || claiming || general || gallery || oracle;
 
   const status = useMemo(() => {
     if (isConnecting) return { title: 'Identity Link', desc: 'Synchronizing Digital Signature...', icon: '🔗' };
