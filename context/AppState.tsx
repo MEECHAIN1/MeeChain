@@ -202,7 +202,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setGlobalLoading('staking', false);
   }, [setGlobalLoading, state.myBots]);
 
-  const notify = useCallback((type: RitualNotification['type'], message: string) => {
+ export const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
       ...prev,
@@ -218,7 +218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 5000);
   }, []);
 
-  const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
+ export const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
     const newEvent: BlockchainEvent = {
       ...event,
       id: Math.random().toString(36).substr(2, 9),
@@ -228,11 +228,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logger.info(`Blockchain Event: ${event.type}`, event);
   }, []);
 
-  const setGalleryFilter = useCallback((filter: string) => {
+ export const setGalleryFilter = useCallback((filter: string) => {
     setState(prev => ({ ...prev, galleryFilter: filter }));
   }, []);
 
-  const refreshBalances = useCallback(async () => {
+export  const refreshBalances = useCallback(async () => {
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
