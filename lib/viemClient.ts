@@ -11,5 +11,5 @@ export const client = createPublicClient({
     timeout: 10000,
     retryCount: 2,
     retryDelay: 1000,
-  });
+  })
  });
