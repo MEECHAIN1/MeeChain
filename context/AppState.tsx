@@ -83,8 +83,7 @@ useEffect(() => {
   setState(prev => ({ 
     ...prev, 
     account: address ? (address as `0x${string}`) : null 
-  }));
-}, [address]);
+  })); [address]);
       if (state.myBots.length === 0) {
           const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
