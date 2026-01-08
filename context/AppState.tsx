@@ -104,7 +104,7 @@ const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isL
       loadingStates: { ...prev.loadingStates, [key]: isLoading }
     }));
   }, []);
-            components: i === 0
+    components: i === 0
               ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
               : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
           };
