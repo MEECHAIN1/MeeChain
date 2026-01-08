@@ -1,31 +1,23 @@
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { defineChain } from 'viem';
 
-// Fix: Removed 'reconnect' from 'wagmi' imports as it is not exported from this entry point in wagmi v2 and remains unused in this configuration.
-import { http, createConfig } from 'wagmi';
-import { meechain } from './viemClient';
-import { injected, walletConnect } from 'wagmi/connectors';
-
-const metadata = {
-  name: 'MeeBot Chain',
-  description: 'MeeBot Ecosystem Ritual Portal',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://127.0.0.1:8545',
-  icons: ['https://avatars.githubusercontent.com/u/37784886'],
-};
-
-export const config = createConfig({
-  chains: [meechain as any],
-  multiInjectedProviderDiscovery: true,
-  connectors: [
-    injected(),
-    walletConnect({
-      projectId: 'b0d81328f8ab0541fdede7db9ff25cb1', 
-      metadata,
-      showQrModal: true,
-      qrModalOptions: {
-        themeMode: 'dark',
-      },
-    }),
-  ],
-  transports: {
-    [meechain.id]: http(),
+// Define the RitualChain (MeeChain) ⚡
+export const ritualChain = defineChain({
+  id: 13390,
+  name: "RitualChain Local",
+  nativeCurrency: { name: "MeeBot Coin", symbol: "MCB", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["http://127.0.0.1:8545"] }
   },
+  blockExplorers: {
+    default: { name: "RitualScan", url: "https://localhost:3000" }
+  }
+});
+
+// Supported chains
+export const config = getDefaultConfig({
+  appName: "RitualChain",
+  projectId: "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
+  chains: [ritualChain],
+  ssr: false,
 });
