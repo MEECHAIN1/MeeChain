@@ -26,7 +26,7 @@ interface AppContextType {
   spendGems: (amount: number) => boolean;
 }
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+ const AppContext = createContext<AppContextType | undefined>(undefined);
 
   const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
@@ -235,7 +235,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
-     export  const results = await Promise.allSettled([
+     const results = await Promise.allSettled([
         client.getBalance({ address }),
         getTokenBalance(address),
         getStakedBalance(address),
