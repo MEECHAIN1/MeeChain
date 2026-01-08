@@ -27,7 +27,7 @@ interface AppContextType {
   spendGems: (amount: number) => boolean;
 }
 
- const AppContext = createContext<AppContextType | undefined>(undefined);
+ const AppContext = createContext<AppContextType | undefined => (undefined);
 
  export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
