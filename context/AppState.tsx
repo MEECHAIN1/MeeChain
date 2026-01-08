@@ -159,7 +159,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     setGlobalLoading('staking', true);
     
     // Find bot for telemetry
-   export const targetBot = state.myBots.find(b => b.id === botId);
+   const targetBot = state.myBots.find(b => b.id === botId);
     if (targetBot) {
       logger.ritual('INFUSION_STAKING', true, {
         phase: 'START',
