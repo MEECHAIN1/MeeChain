@@ -19,7 +19,7 @@ export const config = createConfig({
       metadata,
       showQrModal: true,
       qrModalOptions: {
-        themeMode: 'dark',
+      themeMode: 'dark'
       },
     }),
   ],
