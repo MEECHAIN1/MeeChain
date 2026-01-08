@@ -4,7 +4,7 @@ import App from './App';
 import { buffer } from 'buffer';
 import ErrorBoundary from './components/ErrorBoundary'; 
 window.global = window;
-window.Buffer = Buffer;
+window.buffer = buffer;
 
 const rootElement = document.getElementById('root');
 
