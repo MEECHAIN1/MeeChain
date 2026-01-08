@@ -64,7 +64,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     };
   });
 
- export const [events, setEvents] = useState<BlockchainEvent[]>([]);
+  const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
@@ -83,7 +83,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
       logger.info('User wallet connected', { address });
       if (state.myBots.length === 0) {
-       export const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
+          const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
           const rarity = i === 0 ? "Epic" : "Common";
           return {
@@ -109,7 +109,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }
   }, [address]);
 
-  export const addBot = useCallback((bot: MeeBot) => {
+  const addBot = useCallback((bot: MeeBot) => {
     setState(prev => ({
       ...prev,
       myBots: [bot, ...prev.myBots],
