@@ -34,7 +34,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
 
-  const [state, setState] = useState<UserState>(() => {
+  export const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
     const savedFilter = localStorage.getItem(CONFIG.STORAGE_KEYS.FILTER) || 'All';
     const savedLuck = localStorage.getItem(CONFIG.STORAGE_KEYS.LUCKINESS);
