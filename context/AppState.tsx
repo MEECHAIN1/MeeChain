@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
 import { formatEther } from 'viem';
@@ -30,7 +29,7 @@ interface AppContextType {
 
  const AppContext = createContext<AppContextType | undefined>(undefined);
 
-  const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
@@ -324,3 +323,4 @@ export const useApp = () => {
   if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
 };
+export { AppProvider };
