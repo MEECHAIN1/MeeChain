@@ -6,7 +6,6 @@ const metadata = {
   name: 'MeeBot Chain',
   description: 'MeeBot Ecosystem Ritual Portal',
   url: typeof window !== 'undefined' ? window.location.origin : ['https://127.0.0.1:8545'],
-  icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
 export const config = createConfig({
