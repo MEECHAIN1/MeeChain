@@ -10,7 +10,6 @@ import { getRewardRate, getStakedBalance } from '../lib/services/staking';
 import { generateMeeBotName } from '../lib/meeBotNames';
 import { logger } from '../lib/logger';
 import { CONFIG } from '../lib/config';
-import { AppProvider } from "./AppProvider";
 
 interface AppContextType {
   state: UserState;
