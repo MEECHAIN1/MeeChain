@@ -1,6 +1,6 @@
 {
-  "name": "MeeChain MeeBot Protocol",
-  "description": "Professional Web3 AI Dashboard for the MeeChain ecosystem on BNB Smart Chain. Features real-time telemetry, NFT factory, and automated staking rituals.",
+  "name": "Meebot Chain",
+  "description": "A high-performance blockchain dashboard for the MeeChain ecosystem with advanced responsiveness and AI-powered Oracle integration.",
   "requestFramePermissions": [
     "camera"
   ]

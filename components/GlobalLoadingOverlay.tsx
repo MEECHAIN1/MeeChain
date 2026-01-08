@@ -1,66 +1,36 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useApp } from '../context/AppState';
 
 const GlobalLoadingOverlay: React.FC = () => {
   const { state } = useApp();
-  const { staking, claiming, general, balances, oracle, gallery } = state.loadingStates;
-  const { isConnecting } = state;
+  const { staking, claiming, general } = state.loadingStates;
   
-  // Determine if the global blocking overlay should be active
-  // We block on: 
-  // 1. Initial balance fetch (account null + balances loading)
-  // 2. Wallet connection
-  // 3. Any critical ritual (staking, claiming, general, gallery)
-  // 4. Oracle consultation (optional, but requested for "all async operations")
- const active = isConnecting || staking || claiming || general || gallery || oracle;
-
-  const status = useMemo(() => {
-    if (isConnecting) return { title: 'Identity Link', desc: 'Synchronizing Digital Signature...', icon: '🔗' };
-    if (staking) return { title: 'Neural Core Sync', desc: 'Activating Manifestation Rig...', icon: '⚡' };
-    if (claiming) return { title: 'Energy Harvest', desc: 'Extracting MCB Flux from Ledger...', icon: '🌾' };
-    if (balances && state.account === null) return { title: 'Initial Calibration', desc: 'Scanning Substrate Telemetry...', icon: '📡' };
-    if (oracle) return { title: 'Void Consultation', desc: 'Channelling Oracle Prophecies...', icon: '🔮' };
-    if (gallery) return { title: 'Asset Scan', desc: 'Visualizing Mechanical Collective...', icon: '🖼️' };
-    return { title: 'Processing Ritual', desc: 'Submitting Data Packet to RitualChain...', icon: '🌀' };
-  }, [isConnecting, staking, claiming, balances, state.account, oracle, gallery]);
+  // แสดงผลเฉพาะเมื่อมีการทำธุรกรรมสำคัญเท่านั้น
+  const active = staking || claiming || general;
 
   if (!active) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#05080f]/90 backdrop-blur-xl animate-in fade-in duration-500 font-mono">
-      <div className="text-center space-y-10 p-12 max-w-sm">
-        {/* Quantum Pulse Animation */}
-        <div className="relative w-32 h-32 mx-auto">
-          <div className="absolute inset-0 border-2 border-amber-500/10 rounded-full animate-ping"></div>
-          <div className="absolute inset-2 border-[4px] border-amber-500 border-t-transparent rounded-full animate-[spin_1.5s_linear_infinite]"></div>
-          <div className="absolute inset-4 border border-sky-400/20 rounded-full animate-[spin_3s_linear_infinite_reverse]"></div>
-          <div className="absolute inset-8 bg-amber-500/10 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
-             <span className="text-4xl animate-pulse">{status.icon}</span>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="text-center space-y-8 p-10">
+        <div className="relative w-24 h-24 mx-auto">
+          <div className="absolute inset-0 border-2 border-amber-500/10 rounded-full"></div>
+          <div className="absolute inset-0 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-6 bg-amber-500/5 rounded-full flex items-center justify-center">
+             <span className="text-3xl animate-pulse">⚡</span>
           </div>
         </div>
-
-        <div className="space-y-4">
-          <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">
-            {status.title}
+        <div className="space-y-3">
+          <h3 className="text-2xl font-black italic uppercase tracking-[0.2em] text-white">
+            {staking ? 'Channeling Energy' : claiming ? 'Harvesting Assets' : 'Processing Ritual'}
           </h3>
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500 animate-pulse">
-              {status.desc}
-            </p>
-            <div className="flex justify-center gap-1">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-1 h-1 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}></div>
-              ))}
-            </div>
-          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-amber-500 animate-pulse">
+            Waiting for Ledger Verification...
+          </p>
         </div>
-
-        <div className="pt-8 border-t border-white/5">
-           <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest leading-relaxed">
-             Neural Link Integrity: <span className="text-emerald-500">STABLE</span><br/>
-             Chain Connectivity: <span className="text-sky-500">ACTIVE</span>
-           </p>
+        <div className="pt-4">
+           <p className="text-[8px] text-slate-500 uppercase font-mono italic">Do not sever the link during conversion</p>
         </div>
       </div>
     </div>

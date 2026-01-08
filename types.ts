@@ -16,8 +16,8 @@ export interface MeeBot {
   id: string;
   name: string;
   rarity: "Common" | "Epic" | "Legendary";
-  energyLevel: number; 
-  stakingStart: number | null; 
+  energyLevel: number; // MCB Energy accumulated (0-100+)
+  stakingStart: number | null; // Timestamp when current session began
   isStaking: boolean;
   image: string;
   baseStats: {
@@ -25,7 +25,6 @@ export interface MeeBot {
     speed: number;
     intel: number;
   };
-  components: string[];
 }
 
 export interface UserState {
@@ -43,15 +42,12 @@ export interface UserState {
     general: boolean;
   };
   balances: {
-    native: string; // BNB
-    token: string;  // MCB (Wallet)
-    staked: string; // MCB (Staked)
+    native: string;
+    token: string;
     nftCount: number;
     rewardRate: string;
-    gems: number;   // Summoning currency
-    luckiness: number; // Gacha pity
   };
-  myBots: MeeBot[]; 
+  myBots: MeeBot[]; // Tracked MeeBot collective with persisted energy
 }
 
 export interface BlockchainEvent {

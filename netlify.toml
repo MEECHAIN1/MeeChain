@@ -1,17 +1,11 @@
 [build]
-command = "npx vite build"
 publish = "dist"
+command = "npx vite build"
+
+[build.environment]
+NODE_VERSION = "20"
 
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
-
-[[headers]]
-for = "/*"
-
-[headers.values]
-X-Frame-Options = "DENY"
-X-Content-Type-Options = "nosniff"
-Content-Security-Policy = "upgrade-insecure-requests;"
-Access-Control-Allow-Origin = "*"

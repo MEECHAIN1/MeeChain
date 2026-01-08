@@ -5,7 +5,8 @@ import { injected, walletConnect } from 'wagmi/connectors';
 const metadata = {
   name: 'MeeBot Chain',
   description: 'MeeBot Ecosystem Ritual Portal',
-  url: typeof window !== 'undefined' ? window.location.origin : ['https://127.0.0.1:8545']
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://meechain1-meechain-i-gqjo.bolt.host',
+  icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
 export const config = createConfig({
@@ -14,12 +15,12 @@ export const config = createConfig({
   connectors: [
     injected(),
     walletConnect({
-      projectId: ['b0d81328f8ab0541fdede7db9ff25cb1'], 
+      projectId: 'b0d81328f8ab0541fdede7db9ff25cb1', 
       metadata,
       showQrModal: true,
       qrModalOptions: {
-      themeMode: 'dark'
-      }
+        themeMode: 'dark',
+      },
     }),
   ],
   transports: {

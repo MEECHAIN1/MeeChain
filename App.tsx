@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { WagmiProvider } from 'wagmi';
@@ -10,15 +11,12 @@ import GalleryPage from './pages/GalleryPage';
 import StakingPage from './pages/StakingPage';
 import SwapPage from './pages/SwapPage';
 import MintPage from './pages/MintPage';
-import SummonPage from './pages/SummonPage';
 import EventLogPage from './pages/EventLogPage';
 import TailwindTestPage from './pages/TailwindTestPage';
 import OraclePage from './pages/OraclePage';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
-import { CONFIG } from './lib/config';
-
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,21 +29,24 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
             <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">
+              {/* UI Feedback Overlays */}
               <GlobalLoadingOverlay />
               <RitualToasts />
+              
+              {/* Connection Status Banner */}
               <NetworkBanner />
+              
               <Navbar />
               
               <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10">
                 <Routes>
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/mint" element={<MintPage />} />
-                  <Route path="/summon" element={<SummonPage />} />
                   <Route path="/gallery" element={<GalleryPage />} />
                   <Route path="/staking" element={<StakingPage />} />
                   <Route path="/swap" element={<SwapPage />} />
@@ -63,7 +64,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex flex-col">
                       <span className="font-black text-[10px] tracking-tighter uppercase text-white">MEEBOT_PROTOCOL</span>
-                      <span className="text-[8px] font-mono text-slate-500">VERSION_4.1.0_MOBILE_STABLE</span>
+                      <span className="text-[8px] font-mono text-slate-500">VERSION_4.0.5_MOBILE_STABLE</span>
                     </div>
                   </div>
                   
@@ -81,8 +82,8 @@ const App: React.FC = () => {
             </div>
           </Router>
         </AppProvider>
-      </QueryClientProvider >
-    </WagmiProvider >
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };
 

@@ -1,14 +1,10 @@
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { Buffer } from 'buffer';
-window.global = window;
-window.Buffer = Buffer;
-
 
 const rootElement = document.getElementById('root');
-
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }

@@ -1,28 +1,22 @@
-import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
-import { nodePolyfills } from 'vite-plugin-node-polyfills'; // ต้องลงเพิ่ม
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [
-    tailwindcss(), 
-    reactRouter(), 
-    tsconfigPaths(),
-    // เพิ่มตัวนี้เข้าไปเพื่อแก้ปัญหา createHash และ Buffer ที่ทำให้จอดำ
-    nodePolyfills({
-      globals: {
-        Buffer: true,
-        global: true,
-        process: true,
-      },
-    }),
-  ],
-  // ป้องกันปัญหาการ Resolve module ของ Web3 บางตัว
-  resolve: {
-    alias: {
-      // ช่วยให้ Library เก่าๆ หา Buffer เจอ
-      buffer: 'buffer',
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
     },
-  },
+    plugins: [react()],
+    define: {
+      'import.meta.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+  };
 });

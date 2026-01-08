@@ -1,18 +1,19 @@
-import { type Chain } from 'viem'
 
-export const meechain = {
-  id: 56, // ID ของ BSC
-  name: 'meechain',
+import { Chain } from 'viem';
+
+export const meechain: Chain = {
+  id: 56,
+  name: 'MeeChain Ritual (bsc)',
   nativeCurrency: {
     decimals: 18,
-    name: 'BNB',
-    symbol: 'BNB',
+    name: 'meechain',
+    symbol: 'MCB',
   },
   rpcUrls: {
-    default: { http: ['https://bsc-dataseed.binance.org/'] },
-    public: { http: ['https://bsc-dataseed.binance.org/'] },
+    default: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
+    public: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
   },
   blockExplorers: {
-    default: { name: 'BscScan', url: 'https://bscscan.com' },
+    default: { name: 'bscscan', url: 'https://bscscan.com' },
   },
-} as const satisfies Chain;
+};

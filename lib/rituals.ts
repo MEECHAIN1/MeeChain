@@ -1,9 +1,4 @@
-
-/**
- * Rituals Module
- * Handles success celebrations and visual feedback rituals.
- * Audio removed to prevent "source not found" errors in restricted environments.
- */
+import confetti from 'canvas-confetti';
 
 declare const confetti: any;
 
@@ -19,7 +14,6 @@ export const triggerSuccessRitual = () => {
 };
 
 export const triggerCelestialRitual = () => {
-  // Visual pulse logic can be added here if needed
   console.log("Celestial Ritual Triggered");
 };
 

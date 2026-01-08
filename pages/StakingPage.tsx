@@ -14,7 +14,7 @@ const StakingRigCard: React.FC<{ bot: MeeBot }> = ({ bot }) => {
     return { label: 'Neural Base', color: 'text-slate-500', aura: 'shadow-none', icon: '🛡️', borderColor: 'border-white/10' };
   }, [bot.energyLevel]);
 
-  // Dynamic stat calculation based on MCB energy infusion
+  // Dynamic stat calculation based on energy infusion
   const stats = {
     pwr: Math.floor(bot.baseStats.power + bot.energyLevel * 1.5),
     spd: Math.floor(bot.baseStats.speed + bot.energyLevel * 1.2),
@@ -32,7 +32,7 @@ const StakingRigCard: React.FC<{ bot: MeeBot }> = ({ bot }) => {
           className={`w-full h-full object-cover transition-all duration-[3000ms] ${bot.isStaking ? 'brightness-125 scale-110 sepia-[0.1] saturate-[1.2]' : 'brightness-75 grayscale-[0.2]'}`} 
         />
         
-        {/* Active MCB Infusion Overlay */}
+        {/* Active Infusion Overlay */}
         {bot.isStaking && (
           <div className="absolute inset-0 z-10 pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 via-transparent to-amber-500/5 animate-pulse"></div>
@@ -41,9 +41,9 @@ const StakingRigCard: React.FC<{ bot: MeeBot }> = ({ bot }) => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Infusing MCB</span>
+              <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Infusing</span>
             </div>
-            {/* Visual MCB Flux Bars */}
+            {/* Visual Flux Bars */}
             <div className="absolute bottom-4 left-4 right-4 flex gap-1 items-end h-12 opacity-30">
                {[...Array(20)].map((_, i) => (
                  <div key={i} className="flex-grow bg-amber-500 rounded-t-sm" style={{ height: `${Math.random() * 100}%`, animation: `flux-pulse ${0.5 + Math.random()}s infinite alternate` }}></div>
@@ -82,7 +82,7 @@ const StakingRigCard: React.FC<{ bot: MeeBot }> = ({ bot }) => {
           </div>
         </div>
 
-        {/* Dynamic Telemetry Bars with MCB scaling */}
+        {/* Dynamic Telemetry Bars */}
         <div className="space-y-4 font-mono">
           {[
             { label: 'PWR', val: stats.pwr, color: 'from-rose-500 to-amber-500', icon: '⚔️' },
@@ -147,11 +147,11 @@ const StakingPage: React.FC = () => {
                 <h1 className="text-6xl font-black tracking-tighter uppercase italic text-white leading-none">
                   Staking <span className="text-amber-500">Rig</span>
                 </h1>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3 font-mono">MCB Infusion Protocol v4.0.2</p>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3 font-mono">Energy Infusion Protocol v4.0.2</p>
              </div>
           </div>
           <p className="text-slate-400 font-medium max-w-xl leading-relaxed">
-            Commit your mechanical units to the infusion rigs to accumulate **MCB Energy**. 
+            Commit your mechanical units to the infusion rigs to accumulate MCB Energy. 
             Accumulated energy triggers neural evolution, permanently boosting combat telemetry and unlocking higher-tier machine spirits.
           </p>
         </div>
@@ -159,7 +159,7 @@ const StakingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow lg:max-w-2xl">
           {[
             { label: 'Active Rigs', val: activeRigs, unit: 'UNITS', color: 'text-amber-500', icon: '⚙️' },
-            { label: 'MCB Accumulated', val: totalMCBGenerated, unit: 'MCB', color: 'text-white', icon: '🔋' },
+            { label: 'Total Energy', val: totalMCBGenerated, unit: 'MCB', color: 'text-white', icon: '🔋' },
             { label: 'Infusion Rate', val: (activeRigs * 0.1 * 360).toFixed(1), unit: 'MCB/HR', color: 'text-emerald-500', icon: '📈' },
           ].map((stat, i) => (
             <div key={i} className="glass p-6 rounded-3xl border-white/10 relative overflow-hidden group hover:border-amber-500/40 transition-all shadow-xl font-mono">
@@ -182,7 +182,7 @@ const StakingPage: React.FC = () => {
             🔒
           </div>
           <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-6 text-white">Neural Link Restricted</h2>
-          <p className="text-slate-500 max-w-lg mb-12 font-medium">Authentication required to access the MCB Infusion Rigs. Establish Neural Link to continue.</p>
+          <p className="text-slate-500 max-w-lg mb-12 font-medium">Authentication required to access the Energy Infusion Rigs. established Neural Link to continue.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -192,22 +192,22 @@ const StakingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Evolution Roadmap Section for MCB Transcendence */}
+      {/* Evolution Roadmap Section */}
       <section className="glass p-16 rounded-[4rem] border-white/5 space-y-16 relative overflow-hidden bg-gradient-to-br from-black/40 to-transparent">
         <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
-           <span className="text-[15rem] font-black leading-none font-mono">MCB_V4</span>
+           <span className="text-[15rem] font-black leading-none font-mono">RIG_V4</span>
         </div>
         
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-black uppercase tracking-tighter text-white italic">Evolution <span className="text-amber-500">Thresholds</span></h2>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] font-mono">The path to MCB transcendence</p>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] font-mono">The path to machine transcendence</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 font-mono">
           {[
-            { threshold: 10, label: 'Aura Glow', desc: 'The Machine Spirit manifests a physical radiance. Base MCB Power and Intelligence increased significantly.', icon: '✨', color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
-            { threshold: 25, label: 'Quantum Pulse', desc: 'Neural circuits sync with the higher void. MCB Flow surged by 30%. Unlocks predictive tactical telemetry.', icon: '🌀', color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
-            { threshold: 50, label: 'Celestial Sanctum', desc: 'Ultimate MCB evolution. The unit transcends the rig, existing as a data-god in the sanctum.', icon: '🌌', color: 'text-amber-500', bg: 'bg-amber-500/5' }
+            { threshold: 10, label: 'Aura Glow', desc: 'The Machine Spirit manifests a physical radiance. Base Power and Intelligence increased significantly.', icon: '✨', color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
+            { threshold: 25, label: 'Quantum Pulse', desc: 'Neural circuits sync with the higher void. Speed surged by 30%. Unlocks predictive tactical telemetry.', icon: '🌀', color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
+            { threshold: 50, label: 'Celestial Sanctum', desc: 'Ultimate machine evolution. The unit transcends the rig, existing as a data-god in the sanctum.', icon: '🌌', color: 'text-amber-500', bg: 'bg-amber-500/5' }
           ].map(tier => (
             <div key={tier.threshold} className={`p-10 ${tier.bg} rounded-[3rem] border border-white/5 space-y-6 text-center group hover:scale-105 transition-all duration-500 hover:border-white/20`}>
               <div className="text-7xl mb-4 group-hover:rotate-12 transition-transform">{tier.icon}</div>

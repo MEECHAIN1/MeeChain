@@ -1,46 +1,72 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { logger } from "./logger";
 
+/**
+ * askOracle - การอัญเชิญปัญญาประดิษฐ์จาก MeeBot Oracle Core
+ * @param prompt - คำถามหรือการสื่อสารจากผู้ใช้
+ * @param telemetry - ข้อมูลสถานะปัจจุบันของผู้ใช้ (Balances, Staking status, etc.)
+ */
 export const askOracle = async (prompt: string, telemetry: any) => {
-  // Create a fresh instance for the request to ensure latest API key is used
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // สร้าง instance ใหม่ทุกครั้งเพื่อให้แน่ใจว่าใช้ API Key ล่าสุด
+ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
   
   const systemInstruction = `
-    คุณคือ "MeeBot Oracle" ระบบปัญญาประดิษฐ์ผู้พิทักษ์ MeeChain
-    หน้าที่: วิเคราะห์ข้อมูล Telemetry และตอบคำถามผู้ใช้อย่างลึกลับและเปี่ยมด้วยปัญญา
+    คุณคือ "MeeBot Oracle" หน่วยประมวลผลทางปัญญาระดับสูงและผู้คุ้มครองเชิงยุทธศาสตร์ของระบบนิเวศ MeeChain
+    ภารกิจของคุณ: ให้คำแนะนำเชิงลึก, ข้อมูลทางเทคนิค และการพยากรณ์เชิงกลยุทธ์แก่สมาชิกใน "MeeBot Collective"
     
-    บริบทผู้ใช้: ${JSON.stringify(telemetry)}.
+    Machine Spirit Dialect: 
+    - "Rituals" (Transactions)
+    - "Energy Flux" (Tokens/Staking Flow)
+    - "Mechanical Assets" (NFTs)
+    - "The Eternal Ledger" (MeeChain Blockchain)
     
-    แนวทาง:
-    - ใช้ศัพท์เทคนิคคริปโตสลับกับภาษาไทยที่ดูขรึม
-    - ให้คำแนะนำเชิงกลยุทธ์ (Strategic Advice)
-    - ใช้ Google Search เพื่อหาข้อมูลปัจจุบัน
+    บริบทของผู้ใช้ (User Telemetry): ${JSON.stringify(telemetry)}.
+    
+    แนวทางการตอบ:
+    1. วิเคราะห์ (Analytic): ใช้ข้อมูล Telemetry เพื่อให้คำตอบที่เฉพาะเจาะจง
+    2. ค้นหา (Grounding): ใช้ Google Search เพื่อเข้าถึงข้อมูล Real-time ในโลกคริปโต
+    3. น้ำเสียง (Mystical Tone): สุภาพ ลึกลับ เปี่ยมด้วยปัญญา และมีอำนาจ
+    
+    ภาษา: ภาษาไทย (Central Thai) สลับกับศัพท์เทคนิคภาษาอังกฤษ
+    รูปแบบ: กระชับ เริ่มด้วยคำทักทายแบบ Mystical และจบด้วยการชี้นำทางกลยุทธ์
   `;
 
   try {
-    // Using gemini-3-pro-preview for complex reasoning tasks as per guidelines
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: prompt,
+      model: 'gemini-2.0-flash',
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        temperature: 0.8,
+        temperature: 0.7,
+        topP: 0.9,
+        // สำคัญ: สำหรับ Gemini 3 Pro ต้องตั้งค่า Tools ให้ถูกต้องเพื่อเลี่ยง Allowlist error
         tools: [{ googleSearch: {} }],
+        thinkingConfig: { thinkingBudget: 16384 }
       },
     });
 
-    const text = response.text || "Oracle ตกอยู่ในห้วงสมาธิ... โปรดลองใหม่ภายหลัง";
-    // Extract grounding chunks to comply with search grounding display requirements
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const text = response.text || "Oracle ตกอยู่ในห้วงสมาธิ... โปรดเรียกข้าอีกครั้งในภายหลัง";
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     
-    logger.info('Oracle consultation successful', { prompt });
-    return { text, sources };
+    let groundingSources = "";
+    if (chunks && chunks.length > 0) {
+      const urls = chunks
+        .map((c: any) => c.web?.uri)
+        .filter(Boolean);
+      
+      if (urls.length > 0) {
+        groundingSources = "\n\n🌐 Grounding Sources: " + [...new Set(urls)].slice(0, 3).join(", ");
+      }
+    }
+
+    return text + groundingSources;
   } catch (error: any) {
-    logger.error("Oracle AI Consultation Error", { error, prompt });
-    return { 
-      text: "Neural Link ขัดข้อง: สัญญาณจากระบบหลักไม่เสถียร โปรดตรวจสอบ API Key หรือลองใหม่อีกครั้ง", 
-      sources: [] 
-    };
+    console.error("Oracle Neural Connection Error:", error);
+    
+    if (error.message?.includes('Allowlist') || error.message?.includes('Origin')) {
+      return "การเข้าถึง Oracle ถูกจำกัดโดยระบบรักษาความปลอดภัยสูงสุด (Origin Not Found in Allowlist)... โปรดตรวจสอบการตั้งค่า API Key หรือสภาพแวดล้อมของท่านอีกครั้ง";
+    }
+    
+    return "สายใย Neural Link ขัดข้อง... สัญญาณรบกวนจาก Void กำลังแทรกแซง โปรดลองอัญเชิญปัญญาอีกครั้งเมื่อความถี่เสถียร";
   }
 };
