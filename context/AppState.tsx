@@ -6,8 +6,8 @@ import { client } from 'viemClient';
 import { getTokenBalance } from 'services/token';
 import { getRewardRate, getStakedBalance } from 'services/staking';
 import { generateMeeBotName } from 'meeBotNames';
-import { logger } from './lib/logger';
-import { config } from './lib/config';
+import { logger } from 'logger';
+import { config } from 'config';
 
 interface AppContextType {
   state: UserState;
