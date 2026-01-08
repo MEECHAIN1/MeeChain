@@ -1,13 +1,15 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
+import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../../../types';
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { client } from '@/viemClient';
-import { getTokenBalance } from '@/services/token';
-import { getRewardRate, getStakedBalance } from '@/services/staking';
-import { generateMeeBotName } from '@/meeBotNames';
-import { logger } from '@/logger';
-import { config } from '@/config';
+import { client } from '../../lib/viemClient';
+import { getNFTBalance } from '../../lib/services/nft';
+import { getTokenBalance } from '../../lib/services/token';
+import { getRewardRate, getStakedBalance } from '../../lib/services/staking';
+import { generateMeeBotName } from '../../lib/meeBotNames';
+import { logger } from '../../lib/logger';
+import { CONFIG } from '../../lib/config';
 
 interface AppContextType {
   state: UserState;
