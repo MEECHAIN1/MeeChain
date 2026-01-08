@@ -265,7 +265,7 @@ export  const refreshBalances = useCallback(async () => {
     }
   }, [address, setGlobalLoading, state.myBots.length]);
 
-  const connectWallet = async (connector?: any) => {
+ export const connectWallet = async (connector?: any) => {
     setState(prev => ({ ...prev, isConnecting: true }));
     try {
       const targetConnector = connector || connectors[0];
@@ -278,7 +278,7 @@ export  const refreshBalances = useCallback(async () => {
     }
   };
 
-  const disconnectWallet = async () => {
+ export const disconnectWallet = async () => {
     try {
       await disconnectAsync();
       setState(prev => ({ ...prev, account: null }));
@@ -289,7 +289,7 @@ export  const refreshBalances = useCallback(async () => {
     }
   };
 
-  const removeNotification = useCallback((id: string) => {
+  export const removeNotification = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
       notifications: prev.notifications.filter(n => n.id !== id)
