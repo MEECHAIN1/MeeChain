@@ -244,7 +244,7 @@ export  const refreshBalances = useCallback(async () => {
         getRewardRate()
       ]);
 
-      const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
+     export const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
 
       setState(prev => ({
         ...prev,
