@@ -4,9 +4,21 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider } from './context/AppState';
 import { config } from './lib/wagmi';
-// ... import หน้าต่างๆ ของคุณ ...
+import Navbar from './components/Navbar';
+import DashboardPage from './pages/DashboardPage';
+import GalleryPage from './pages/GalleryPage';
+import StakingPage from './pages/StakingPage';
+import SwapPage from './pages/SwapPage';
+import MintPage from './pages/MintPage';
+import SummonPage from './pages/SummonPage';
+import EventLogPage from './pages/EventLogPage';
+import TailwindTestPage from './pages/TailwindTestPage';
+import OraclePage from './pages/OraclePage';
+import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
+import RitualToasts from './components/RitualToasts';
+import NetworkBanner from './components/NetworkBanner';
+import { CONFIG } from './lib/config';
 
-// ย้ายการตั้งค่า queryClient มาไว้ตรงนี้ให้ถูกต้อง
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
