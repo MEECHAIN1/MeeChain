@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { client } from '../lib/viemClient';
+import { client } from '../lib/wagmi;
 import { getNFTBalance } from '../lib/services/nft';
 import { getTokenBalance } from '../lib/services/token';
 import { getRewardRate, getStakedBalance } from '../lib/services/staking';
