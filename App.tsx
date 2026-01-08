@@ -4,21 +4,9 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider } from './context/AppState';
 import { config } from './lib/wagmi';
-import Navbar from './components/Navbar';
-import DashboardPage from './pages/DashboardPage';
-import GalleryPage from './pages/GalleryPage';
-import StakingPage from './pages/StakingPage';
-import SwapPage from './pages/SwapPage';
-import MintPage from './pages/MintPage';
-import SummonPage from './pages/SummonPage';
-import EventLogPage from './pages/EventLogPage';
-import TailwindTestPage from './pages/TailwindTestPage';
-import OraclePage from './pages/OraclePage';
-import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
-import RitualToasts from './components/RitualToasts';
-import NetworkBanner from './components/NetworkBanner';
+// ... import หน้าต่างๆ ของคุณ ...
 
-// แก้ไข QueryClient ให้ถูกต้อง
+// ย้ายการตั้งค่า queryClient มาไว้ตรงนี้ให้ถูกต้อง
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -33,14 +21,12 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
-            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe bg-[#05080f]">
+            <div className="min-h-screen flex flex-col bg-[#05080f] text-white">
+              {/* ตรวจสอบว่า Navbar และ Overlay อยู่ในลำดับที่ถูกต้อง */}
               <GlobalLoadingOverlay />
-              <RitualToasts />
-              <NetworkBanner />
               <Navbar />
               
-              <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10">
-                {/* ต้องมี Routes ครอบ Route เสมอ */}
+              <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-10">
                 <Routes>
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/mint" element={<MintPage />} />
@@ -53,10 +39,6 @@ const App: React.FC = () => {
                   <Route path="/debug" element={<TailwindTestPage />} />
                 </Routes>
               </main>
-
-              <footer className="p-6 text-center text-[10px] text-slate-600 uppercase tracking-widest border-t border-white/5">
-                MeeBot Protocol Integrity Secured
-              </footer>
             </div>
           </Router>
         </AppProvider>
