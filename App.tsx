@@ -20,7 +20,14 @@ import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
 
 const queryClient = new QueryClient();
-  // ... (options คงเดิม)
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: true,
+    },
+  },
+});
+
 });
 
 // 1. ฟังก์ชัน App ต้องเริ่มต้นด้วยปีกกา {
