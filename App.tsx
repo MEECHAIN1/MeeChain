@@ -19,6 +19,7 @@ import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
 
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
