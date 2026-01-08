@@ -25,26 +25,8 @@ import react from '@vitejs/plugin-react'; // Ensure this import is correct
       sourcemap: true,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'ritual-core': [
-              '@base-org/account',
-            ],
-            'coinbase-wallet': [
-              '@coinbase/wallet-sdk',
-            ],
-            'wagmi-connectors': [
-              '@wagmi/connectors',
-            ],
-            'rainbowkit': [
-              '@rainbow-me/rainbowkit',
-            ],
-            uiMagic: [
-              '@reown/appkit',
-              '@reown/appkit-controllers',
-            ],
           },
         },
       },
     },
-  };
 });
