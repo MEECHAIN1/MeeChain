@@ -26,6 +26,7 @@ interface AppContextType {
   updateLuckiness: (amount: number, reset?: boolean) => void;
   spendGems: (amount: number) => boolean;
 }
+export const config = createConfig({ ... });
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
