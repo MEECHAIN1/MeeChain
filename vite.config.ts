@@ -11,7 +11,7 @@ import react from '@vitejs/plugin-react'; // Ensure this import is correct
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(__dirname, '.'),
       },
       dedupe: ['ox'], // 🔮 Deduplicate ox across nested dependencies
     },
