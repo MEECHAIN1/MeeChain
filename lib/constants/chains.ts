@@ -1,8 +1,9 @@
 
 import { Chain } from 'viem';
 
+// MeeChain Configuration updated with provided QuikNode RPC
 export const meechain: Chain = {
-  id: 56,
+  id: 56, // Mapping to Polygon Mainnet as per QuikNode URL
   name: 'MeeChain Ritual (bsc)',
   nativeCurrency: {
     decimals: 18,

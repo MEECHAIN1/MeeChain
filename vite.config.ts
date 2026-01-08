@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     define: {
-      'import.meta.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      //'import.meta.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
     resolve: {
       alias: {
@@ -20,3 +20,4 @@ export default defineConfig(({ mode }) => {
     },
   };
 });
+

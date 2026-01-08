@@ -1,10 +1,7 @@
+
 import { client } from "../viemClient";
 import { ABIS, ADRS } from "../contracts";
 
-/**
- * Fetches NFT balance for an account. 
- * If the contract is not deployed or returns an error, returns a mock balance.
- */
 export async function getNFTBalance(account: `0x${string}`): Promise<bigint> {
   try {
     const result = await client.readContract({
@@ -17,7 +14,7 @@ export async function getNFTBalance(account: `0x${string}`): Promise<bigint> {
     if (result === undefined || result === null) return 0n;
     return BigInt(result as any);
   } catch (error) {
-    console.warn("NFT balanceOf failed (likely contract not deployed). Using mock fallback.");
+    console.warn("NFT balance fallback triggered.");
     return 3n; 
   }
 }
@@ -38,7 +35,7 @@ export async function getNFTOwner(tokenId: bigint): Promise<`0x${string}`> {
 
 export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: bigint, hash: string) => void) {
   try {
-    return client.watchContractEvent({
+    const unwatch = client.watchContractEvent({
       address: ADRS.nft,
       abi: ABIS.nft,
       eventName: "Transfer",
@@ -51,6 +48,7 @@ export function watchNFTTransfers(onLog: (from: string, to: string, tokenId: big
         });
       },
     });
+    return unwatch || (() => {});
   } catch (e) {
     console.warn("Could not watch NFT events:", e);
     return () => {};

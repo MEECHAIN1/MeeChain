@@ -1,3 +1,5 @@
+
+// Fix: Removed 'reconnect' from 'wagmi' imports as it is not exported from this entry point in wagmi v2 and remains unused in this configuration.
 import { http, createConfig } from 'wagmi';
 import { meechain } from './viemClient';
 import { injected, walletConnect } from 'wagmi/connectors';
@@ -5,7 +7,7 @@ import { injected, walletConnect } from 'wagmi/connectors';
 const metadata = {
   name: 'MeeBot Chain',
   description: 'MeeBot Ecosystem Ritual Portal',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://meechain1-meechain-i-gqjo.bolt.host',
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://127.0.0.1:8545',
   icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
