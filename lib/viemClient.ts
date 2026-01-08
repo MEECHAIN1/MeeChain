@@ -12,4 +12,4 @@ export const client = createPublicClient({
     retryCount: 2,
     retryDelay: 1000,
   });
-  });
+ });
