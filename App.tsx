@@ -33,7 +33,7 @@ const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
-            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">              <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10"
+            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">         <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 md:py-10"
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/mint" element={<MintPage />} />
                   <Route path="/summon" element={<SummonPage />} />
