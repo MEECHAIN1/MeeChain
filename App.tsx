@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
       retry: 2,
     },
   },
-});
+}); // ย้ายเซมิโคลอนมาไว้ตรงท้ายสุดแบบนี้
 
 const App: React.FC = () => {
   return (
