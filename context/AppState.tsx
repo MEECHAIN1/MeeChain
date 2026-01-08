@@ -181,7 +181,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
       const bot = prev.myBots[botIndex];
       const activating = !bot.isStaking;
       
-     export const newBots = [...prev.myBots];
+     const newBots = [...prev.myBots];
       newBots[botIndex] = {
         ...bot,
         isStaking: activating,
@@ -201,7 +201,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     setGlobalLoading('staking', false);
   }, [setGlobalLoading, state.myBots]);
 
- export const notify = useCallback((type: RitualNotification['type'], message: string) => {
+    const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
       ...prev,
@@ -217,7 +217,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }, 5000);
   }, []);
 
- export const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
+    const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
     const newEvent: BlockchainEvent = {
       ...event,
       id: Math.random().toString(36).substr(2, 9),
@@ -227,11 +227,11 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     logger.info(`Blockchain Event: ${event.type}`, event);
   }, []);
 
- export const setGalleryFilter = useCallback((filter: string) => {
+  const setGalleryFilter = useCallback((filter: string) => {
     setState(prev => ({ ...prev, galleryFilter: filter }));
   }, []);
 
- export const refreshBalances = useCallback(async () => {
+  const refreshBalances = useCallback(async () => {
     if (!address) return;
     setGlobalLoading('balances', true);
     try {
@@ -243,7 +243,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
         getRewardRate()
       ]);
 
-     export const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
+     const [nativeRes, tokenRes, stakedRes, nftRes, rewardRes] = results;
 
       setState(prev => ({
         ...prev,
@@ -264,7 +264,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }
   }, [address, setGlobalLoading, state.myBots.length]);
 
- export const connectWallet = async (connector?: any) => {
+   const connectWallet = async (connector?: any) => {
     setState(prev => ({ ...prev, isConnecting: true }));
     try {
       const targetConnector = connector || connectors[0];
@@ -277,7 +277,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }
   };
 
- export const disconnectWallet = async () => {
+   const disconnectWallet = async () => {
     try {
       await disconnectAsync();
       setState(prev => ({ ...prev, account: null }));
@@ -288,7 +288,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }
   };
 
-  export const removeNotification = useCallback((id: string) => {
+   const removeNotification = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
       notifications: prev.notifications.filter(n => n.id !== id)
