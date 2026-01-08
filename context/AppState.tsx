@@ -130,7 +130,7 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
     }));
   }, []);
 
-  export const spendGems = useCallback((amount: number) => {
+  const spendGems = useCallback((amount: number) => {
     let success = false;
     setState(prev => {
       if (prev.balances.gems >= amount) {
