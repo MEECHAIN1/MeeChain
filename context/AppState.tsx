@@ -78,11 +78,13 @@ interface AppContextType {
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.LUCKINESS, state.balances.luckiness.toString());
   }, [state.balances.luckiness]);
-
-  useEffect(() => {
-    if (address) {
-      setState(prev => ({ ...prev, account: address as `0x${string}` }));
-      logger.info('User wallet connected', { address });
+   
+useEffect(() => {
+  setState(prev => ({ 
+    ...prev, 
+    account: address ? (address as `0x${string}`) : null 
+  }));
+}, [address]);
       if (state.myBots.length === 0) {
           const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
