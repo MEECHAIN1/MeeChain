@@ -98,6 +98,12 @@ useEffect(() => {
               speed: 40 + Math.random() * 20,
               intel: 40 + Math.random() * 20
             },
+const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading:  boolean) => {
+    setState(prev => ({
+      ...prev,
+      loadingStates: { ...prev.loadingStates, [key]: isLoading }
+    }));
+  }, []);
             components: i === 0
               ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
               : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
