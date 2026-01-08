@@ -182,7 +182,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const bot = prev.myBots[botIndex];
       const activating = !bot.isStaking;
       
-      const newBots = [...prev.myBots];
+     export const newBots = [...prev.myBots];
       newBots[botIndex] = {
         ...bot,
         isStaking: activating,
