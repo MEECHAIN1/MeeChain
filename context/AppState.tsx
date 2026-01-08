@@ -145,16 +145,6 @@ useEffect(() => {
     return success;
   }, []);
 
- const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
-    setState(prev => ({
-      ...prev,
-      loadingStates: { ...prev.loadingStates, [key]: isLoading }
-    }));
-  }, []);
-
-  const toggleBotStaking = useCallback(async (botId: string) => {
-    setGlobalLoading('staking', true);
-    
     // Find bot for telemetry
    const targetBot = state.myBots.find(b => b.id === botId);
     if (targetBot) {
