@@ -19,21 +19,28 @@ import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
+// ... (ส่วนการ import ด้านบนคงเดิม)
 
-  
+const queryClient = new QueryClient({
+  // ... (options คงเดิม)
+});
+
+// 1. ฟังก์ชัน App ต้องเริ่มต้นด้วยปีกกา {
+const App: React.FC = () => {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <AppProvider>
+          <Router>
+            <div className="min-h-screen flex flex-col selection:bg-amber-500/30 relative pb-safe">
+               {/* ... (เนื้อหาภายในคงเดิม) ... */}
+            </div>
+          </Router>
+        </AppProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}; // 2. ปิดปีกกาของฟังก์ชัน App ตรงนี้
+
+// 3. ย้าย Export default มาไว้ล่างสุด
 export default App;
-return (
-  <WagmiProvider config={config}>
-    <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        {/* ลองปิดคอมโพเนนต์ที่มีความเสี่ยงออกให้หมดก่อน */}
-        <div className="text-white p-10">Testing: If you see this, the Providers are working!</div>
-        {/* <GlobalLoadingOverlay /> */}
-        {/* <RitualToasts /> */}
-        {/* <Navbar /> */}
-      </AppProvider>
-    </QueryClientProvider>
-  </WagmiProvider>
-);
-  
-  export default App;
