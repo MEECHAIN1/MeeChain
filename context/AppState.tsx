@@ -4,10 +4,10 @@ import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from '@/viemClient';
 import { getTokenBalance } from '@/services/token';
-import { getRewardRate, getStakedBalance } from 'services/staking';
-import { generateMeeBotName } from 'meeBotNames';
-import { logger } from 'logger';
-import { config } from 'config';
+import { getRewardRate, getStakedBalance } from '@/services/staking';
+import { generateMeeBotName } from '@/meeBotNames';
+import { logger } from '@/logger';
+import { config } from '@/config';
 
 interface AppContextType {
   state: UserState;
