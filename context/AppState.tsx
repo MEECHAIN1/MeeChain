@@ -65,7 +65,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   });
 
-  const [events, setEvents] = useState<BlockchainEvent[]>([]);
+ export const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
