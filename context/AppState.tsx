@@ -84,7 +84,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
       logger.info('User wallet connected', { address });
       if (state.myBots.length === 0) {
-        const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
+       export const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
           const rarity = i === 0 ? "Epic" : "Common";
           return {
