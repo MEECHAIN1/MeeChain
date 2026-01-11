@@ -1,15 +1,22 @@
-
 import { createPublicClient, http, fallback } from 'viem';
-import { meechain } from './constants/chains';
+import { meechain } from './constants/chains'; // ตรวจสอบ path อีกครั้ง
 
-const RPC_URL = "https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033";
+// แนะนำให้มี RPC สำรองเพื่อป้องกันหน้าเว็บค้าง/ขาวเมื่อ RPC หลักมีปัญหา
+const RPC_URLS = [
+  "https://bsc-dataseed.binance.org/",
+  "https://binance.lava.build",
+  "https://rpc.ankr.com/bsc"
+];
 
 export { meechain };
 
 export const client = createPublicClient({
   chain: meechain,
-  transport: fallback([
-    http(RPC_URL),
-    http("https://bsc-dataseed.binance.org")
-  ]),
+  // ใช้ fallback เพื่อให้ถ้าตัวที่ 1 ล่ม มันจะสลับไปตัวที่ 2 อัตโนมัติ
+  transport: fallback(
+    RPC_URLS.map(url => http(url, {
+      timeout: 10000,
+      retryCount: 2,
+    }))
+  ),
 });

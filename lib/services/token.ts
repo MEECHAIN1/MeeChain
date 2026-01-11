@@ -31,7 +31,7 @@ export async function getTokenMetadata() {
   }
 }
 
-export function watchTokenTransfers(onLog: (from: string, to: string, value: bigint, hash: string) => void) {
+export function watchTokenTransfers(onLog: (from: string, to: string, value: bigint, hash: string) => void): () => void {
   try {
     const unwatch = client.watchContractEvent({
       address: ADRS.token,
@@ -46,7 +46,7 @@ export function watchTokenTransfers(onLog: (from: string, to: string, value: big
         });
       },
     });
-    return unwatch || (() => {});
+    return typeof unwatch === 'function' ? unwatch : () => {};
   } catch (e) {
     return () => {};
   }

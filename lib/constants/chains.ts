@@ -1,20 +1,18 @@
+import { type Chain } from 'viem'
 
-import { Chain } from 'viem';
-
-// MeeChain Configuration updated with provided QuikNode RPC
-export const meechain: Chain = {
-  id: 56, // Mapping to Polygon Mainnet as per QuikNode URL
-  name: 'MeeChain Ritual (bsc)',
+export const meechain = {
+  id: 56, // ID ของ BSC
+  name: 'meechain',
   nativeCurrency: {
     decimals: 18,
-    name: 'meechain',
-    symbol: 'MCB',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
-    default: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
-    public: { http: ['https://dimensional-newest-film.bsc.quiknode.pro/8296e7105d470d5d73b51b19556495493c8f1033'] },
+    default: { http: ['https://bsc-dataseed.binance.org/'] },
+    public: { http: ['https://bsc-dataseed.binance.org/'] },
   },
   blockExplorers: {
-    default: { name: 'bscscan', url: 'https://bscscan.com' },
+    default: { name: 'BscScan', url: 'https://bscscan.com' },
   },
-};
+} as const satisfies Chain;

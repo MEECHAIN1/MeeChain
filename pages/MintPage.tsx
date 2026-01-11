@@ -3,9 +3,10 @@ import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppState';
 import { GoogleGenAI } from "@google/genai";
 import { triggerMintRitual, triggerSuccessRitual, triggerWarpRitual } from '../lib/rituals';
+import { generateMeeBotName } from '../lib/meeBotNames';
 
 const MintPage: React.FC = () => {
-  const { state, notify, addEvent, setGlobalLoading } = useApp();
+  const { state, notify, addEvent, setGlobalLoading, addBot } = useApp();
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -53,7 +54,8 @@ const MintPage: React.FC = () => {
     
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const enhancedPrompt = `A high-quality 3D render of a mechanical MeeBot robot, ${prompt}, cyberpunk aesthetic, neon accents, floating in a digital void, cinematic lighting, 8k resolution.`;
+      // Optimized prompt to match the aesthetic of "MeeChain Spirit" from user image 1
+      const enhancedPrompt = `A cute 3D chibi-style mechanical MeeBot robot, large circular glowing cyan blue eyes, white metallic body, ${prompt}, holding a vibrant glowing pink lotus flower in its mechanical palm, wearing a red traditional sash with a gold medallion, standing in a dreamy space nebula with floating planets and abstract shapes, toy photography style, smooth clay-like textures, cinematic lighting, vibrant 8k render.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -88,7 +90,7 @@ const MintPage: React.FC = () => {
   };
 
   const handleMint = async () => {
-    if (!state.account) return notify('error', 'Neural Link not established.');
+    if (!state.account || !generatedImage) return notify('error', 'Neural Link not established or image missing.');
     
     setIsMinting(true);
     setGlobalLoading('general', true);
@@ -96,6 +98,24 @@ const MintPage: React.FC = () => {
       await new Promise(r => setTimeout(r, 2000));
       const tokenId = Math.floor(Math.random() * 9000) + 1000;
       
+      const newBot = {
+        id: tokenId.toString(),
+        name: generateMeeBotName(tokenId.toString()),
+        rarity: Math.random() > 0.9 ? "Legendary" : Math.random() > 0.7 ? "Epic" : "Common" as any,
+        energyLevel: 0,
+        stakingStart: null,
+        isStaking: false,
+        image: generatedImage,
+        baseStats: {
+          power: 40 + Math.random() * 20,
+          speed: 40 + Math.random() * 20,
+          intel: 40 + Math.random() * 20
+        },
+        components: ["Modular Plating", "Core Processor", "Sensory Array", "Energy Conduit"] // Default components for new bots
+      };
+
+      addBot(newBot);
+
       addEvent({
         type: 'Minted',
         contract: 'NFT',
@@ -107,7 +127,7 @@ const MintPage: React.FC = () => {
 
       triggerSuccessRitual();
       triggerMintRitual();
-      notify('success', `Spirit #${tokenId} anchored to your wallet!`);
+      notify('success', `Spirit #${tokenId} anchored to your wallet and gallery!`);
       setGeneratedImage(null);
       setPrompt('');
     } catch (err) {

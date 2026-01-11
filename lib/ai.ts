@@ -1,8 +1,10 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { logger } from "./logger";
 
 export const askOracle = async (prompt: string, telemetry: any) => {
- const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+  // Create a fresh instance for the request to ensure latest API key is used
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const systemInstruction = `
     คุณคือ "MeeBot Oracle" ระบบปัญญาประดิษฐ์ผู้พิทักษ์ MeeChain
@@ -17,9 +19,10 @@ export const askOracle = async (prompt: string, telemetry: any) => {
   `;
 
   try {
+    // Using gemini-3-pro-preview for complex reasoning tasks as per guidelines
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [{ parts: [{ text: prompt }] }],
+      model: 'gemini-3-pro-preview',
+      contents: prompt,
       config: {
         systemInstruction,
         temperature: 0.8,
@@ -28,9 +31,16 @@ export const askOracle = async (prompt: string, telemetry: any) => {
     });
 
     const text = response.text || "Oracle ตกอยู่ในห้วงสมาธิ... โปรดลองใหม่ภายหลัง";
-    return text;
+    // Extract grounding chunks to comply with search grounding display requirements
+    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    
+    logger.info('Oracle consultation successful', { prompt });
+    return { text, sources };
   } catch (error: any) {
-    console.error("Oracle Error:", error);
-    return "Neural Link ขัดข้อง: สัญญาณจากระบบหลักไม่เสถียร โปรดตรวจสอบ API Key หรือลองใหม่อีกครั้ง";
+    logger.error("Oracle AI Consultation Error", { error, prompt });
+    return { 
+      text: "Neural Link ขัดข้อง: สัญญาณจากระบบหลักไม่เสถียร โปรดตรวจสอบ API Key หรือลองใหม่อีกครั้ง", 
+      sources: [] 
+    };
   }
 };

@@ -36,28 +36,19 @@ export async function getRewardRate(): Promise<bigint> {
   }
 }
 
-/**
- * Initiates the staking ritual.
- * In a real app, this would use a wallet client. 
- * For this dashboard, we simulate a successful transaction.
- */
 export async function stakeTokens(amount: string): Promise<string> {
-  // Simulating energy channeling
   await new Promise(resolve => setTimeout(resolve, 2000));
   return `0x${Math.random().toString(16).slice(2, 66)}`;
 }
 
-/**
- * Claims accumulated rewards.
- */
 export async function claimRewards(): Promise<string> {
   await new Promise(resolve => setTimeout(resolve, 1500));
   return `0x${Math.random().toString(16).slice(2, 66)}`;
 }
 
-export function watchStakingEvents(onStaked: (user: string, amount: bigint, hash: string) => void) {
+export function watchStakingEvents(onStaked: (user: string, amount: bigint, hash: string) => void): () => void {
   try {
-    return client.watchContractEvent({
+    const unwatch = client.watchContractEvent({
       address: ADRS.staking,
       abi: ABIS.staking,
       eventName: "Staked",
@@ -70,6 +61,7 @@ export function watchStakingEvents(onStaked: (user: string, amount: bigint, hash
         });
       },
     });
+    return typeof unwatch === 'function' ? unwatch : () => {};
   } catch (e) {
     console.warn("Could not watch staking events:", e);
     return () => {};
