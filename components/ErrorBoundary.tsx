@@ -1,5 +1,5 @@
 
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../lib/logger';
 
 interface Props {
@@ -13,31 +13,29 @@ interface State {
 
 /**
  * Global Error Boundary to catch neural link collapses and UI crashes.
- * Explicitly extends React.Component with Props and State generics to ensure 'props' and 'state' properties are correctly typed.
+ * Monitors the component tree for unexpected exceptions and renders a fallback UI.
  */
-class ErrorBoundary extends React.Component<Props, State> {
-  // Fix: Explicitly declare state property for the TypeScript compiler to resolve inheritance errors
+// Fix: Extending Component directly from the named import helps TypeScript resolve inherited props and state.
+class ErrorBoundary extends Component<Props, State> {
+  // Fix: Use a public field to initialize state. This ensures 'this.state' is correctly recognized 
+  // as a member of the class with the specified State interface, resolving property existence errors.
   public state: State = {
     hasError: false,
     error: null
   };
 
-  constructor(props: Props) {
-    super(props);
-  }
-
-  // Fix: Static method for updating state from errors
+  // Static method for updating state from errors
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  // Fix: Life-cycle method for error side effects
+  // Life-cycle method for error side effects
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.critical('Global UI Crash Detected', { error, errorInfo });
   }
 
   public render() {
-    // Fix: Using this.state to check for ritual disruption (error state)
+    // Fix: Accessing this.state.hasError. Inheritance from Component<Props, State> ensures property existence.
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#05080f] flex items-center justify-center p-6 font-mono">
@@ -53,6 +51,7 @@ class ErrorBoundary extends React.Component<Props, State> {
               </p>
             </div>
             <div className="bg-black/40 p-4 rounded-2xl border border-white/5 overflow-hidden">
+               {/* Fix: Accessing this.state.error. Optional chaining handles the potential null value with type safety. */}
                <p className="text-[9px] text-rose-400/60 truncate italic">{this.state.error?.message}</p>
             </div>
             <button 
@@ -66,7 +65,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Fix: Correctly accessing this.props to render children in the success path
+    // Fix: Accessing this.props.children. Inheritance from Component ensures 'props' is defined on the instance.
     return this.props.children;
   }
 }

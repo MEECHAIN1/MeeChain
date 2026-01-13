@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../../../types';
+import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
 import { formatEther } from 'viem';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { client } from '../lib/viemClient';
@@ -120,7 +119,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         nftCount: prev.balances.nftCount + 1
       }
     }));
-    logger.ritual('MINT', true, { botId: bot.id, rarity: bot.rarity });
   }, []);
 
   const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
@@ -160,6 +158,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleBotStaking = useCallback(async (botId: string) => {
     setGlobalLoading('staking', true);
+    
+    // Find bot for telemetry
+    const targetBot = state.myBots.find(b => b.id === botId);
+    if (targetBot) {
+      logger.ritual('INFUSION_STAKING', true, {
+        phase: 'START',
+        botId,
+        rarity: targetBot.rarity,
+        action: targetBot.isStaking ? 'DEACTIVATE' : 'ACTIVATE'
+      });
+    }
+
     await new Promise(r => setTimeout(r, 1500));
 
     setState(prev => {
@@ -179,12 +189,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         stakingStart: activating ? Date.now() : null
       };
 
-      logger.ritual('STAKING_TOGGLE', true, { botId, active: activating });
+      logger.ritual('INFUSION_STAKING', true, { 
+        phase: 'SUCCESS',
+        botId, 
+        active: activating,
+        energyLevel: bot.energyLevel 
+      });
+      
       return { ...prev, myBots: newBots };
     });
     
     setGlobalLoading('staking', false);
-  }, [setGlobalLoading]);
+  }, [setGlobalLoading, state.myBots]);
 
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);

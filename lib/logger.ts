@@ -40,22 +40,18 @@ export const logger = {
 
   /**
    * Performs a "Ritual Stamp" for systematic telemetry.
-   * @param ritualName - The name of the ritual (e.g., 'SUMMON', 'STAKE')
-   * @param success - Whether the ritual reached manifestation
-   * @param data - The Telemetry Context (Neural Data Packet)
    */
   ritual: (ritualName: string, success: boolean, data?: any) => {
     const status = success ? 'MANIFESTED' : 'DISRUPTED';
     const msg = `[RITUAL] ${ritualName}: ${status}`;
     
-    // Enrich with standard telemetry if not present
     const enrichedData = {
       timestamp: Date.now(),
-      protocolVersion: '4.2.0',
+      protocolVersion: '5.0.0',
       ...data
     };
 
-    console.log(`${msg}`, enrichedData);
+    console.log(`%c${msg}`, 'color: #f59e0b; font-weight: bold', enrichedData);
     
     if (window.Rollbar) {
       if (success) {
@@ -63,6 +59,23 @@ export const logger = {
       } else {
         window.Rollbar.warning(msg, enrichedData);
       }
+    }
+  },
+
+  /**
+   * Specialized logging for AI Oracle Prophecies.
+   */
+  prophecy: (query: string, data: { response: string, sources: any[], [key: string]: any }) => {
+    const msg = `[PROPHECY] Manifested response for: "${query.slice(0, 50)}..."`;
+    
+    console.log(`%c${msg}`, 'color: #818cf8; font-weight: bold', data);
+    
+    if (window.Rollbar) {
+      window.Rollbar.info(msg, {
+        query,
+        ...data,
+        timestamp: Date.now()
+      });
     }
   }
 };

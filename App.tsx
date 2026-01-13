@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { WagmiProvider } from 'wagmi';
@@ -19,7 +20,6 @@ import RitualToasts from './components/RitualToasts';
 import NetworkBanner from './components/NetworkBanner';
 import { CONFIG } from './lib/config';
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,7 +31,7 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
           <Router>
@@ -63,7 +63,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex flex-col">
                       <span className="font-black text-[10px] tracking-tighter uppercase text-white">MEEBOT_PROTOCOL</span>
-                      <span className="text-[8px] font-mono text-slate-500">VERSION_4.1.0_MOBILE_STABLE</span>
+                      <span className="text-[8px] font-mono text-slate-500">VERSION_{CONFIG.VERSION}</span>
                     </div>
                   </div>
                   
@@ -73,16 +73,19 @@ const App: React.FC = () => {
                     <a href="#" className="hover:text-amber-500 transition-colors">Ledger</a>
                   </div>
                   
-                  <p className="text-[9px] text-slate-700 font-mono italic">
-                    &copy; 2025 ALL_NEURAL_ASSETS_RESERVED
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <p className="text-[9px] text-slate-700 font-mono italic">
+                      PROTOCOL_INTEGRITY: SECURE
+                    </p>
+                  </div>
                 </div>
               </footer>
             </div>
           </Router>
         </AppProvider>
-      </QueryClientProvider >
-    </WagmiProvider >
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };
 
