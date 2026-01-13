@@ -1,5 +1,5 @@
 
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../lib/logger';
 
 interface Props {
@@ -15,11 +15,17 @@ interface State {
  * Global Error Boundary to catch neural link collapses and UI crashes.
  * Monitors the component tree for unexpected exceptions and renders a fallback UI.
  */
-// Explicitly extending React.Component and providing a constructor to resolve TypeScript errors regarding 'this.props'.
-class ErrorBoundary extends React.Component<Props, State> {
-  // Initializing state within the constructor to ensure property existence in all TS environments.
+// Use named Component import and explicit state declaration to resolve inheritance property errors in strict TS environments
+class ErrorBoundary extends Component<Props, State> {
+  // Explicitly declare state property to ensure existence on the type 'ErrorBoundary'
+  public state: State = {
+    hasError: false,
+    error: null
+  };
+
   constructor(props: Props) {
     super(props);
+    // Initializing state again here if needed, but the property declaration above fixes the TS error
     this.state = {
       hasError: false,
       error: null
@@ -37,7 +43,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public render() {
-    // Accessing state via 'this' which is now correctly inherited from React.Component.
+    // Accessing state via 'this' which is now correctly recognized by the TS compiler
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#05080f] flex items-center justify-center p-6 font-mono">
@@ -66,7 +72,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Accessing props via 'this' which is now correctly inherited from React.Component.
+    // Accessing props via 'this' which is correctly inherited from Component<Props, State>
     return this.props.children;
   }
 }

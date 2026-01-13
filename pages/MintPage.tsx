@@ -4,15 +4,27 @@ import { useApp } from '../context/AppState';
 import { GoogleGenAI } from "@google/genai";
 import { triggerMintRitual, triggerSuccessRitual, triggerWarpRitual } from '../lib/rituals';
 import { generateMeeBotName } from '../lib/meeBotNames';
+import { useWriteContract } from 'wagmi';
+import { ADRS, ABIS } from '../lib/contracts';
+import { logger } from '../lib/logger';
 
+/**
+ * Spirit Manifestor Page
+ * The primary interface for creating new MeeBot entities using AI imagery.
+ */
 const MintPage: React.FC = () => {
   const { state, notify, addEvent, setGlobalLoading, addBot } = useApp();
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Wagmi contract write hook
+  const { writeContractAsync } = useWriteContract();
+
+  /**
+   * Applies the official protocol watermark and neural gradient.
+   */
   const applyWatermark = (base64Image: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -26,18 +38,26 @@ const MintPage: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return resolve(base64Image);
 
+        // Draw manifestation
         ctx.drawImage(img, 0, 0, 1024, 1024);
 
+        // Apply Neural Fade
         const gradient = ctx.createLinearGradient(0, 850, 0, 1024);
         gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+        gradient.addColorStop(1, 'rgba(5, 8, 15, 0.95)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 850, 1024, 174);
 
-        ctx.font = "900 60px 'Inter', sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
+        // Sigil Stamping
+        ctx.font = "900 48px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
         ctx.textAlign = "center";
-        ctx.fillText("MEECHAIN SPIRIT", 512, 950);
+        ctx.letterSpacing = "20px";
+        ctx.fillText("MEECHAIN SPIRIT", 512, 940);
+        
+        ctx.font = "700 16px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(244, 63, 94, 0.6)";
+        ctx.fillText("PROTOCOL_VER_4.1_SECURED", 512, 980);
 
         resolve(canvas.toDataURL('image/png'));
       };
@@ -45,17 +65,22 @@ const MintPage: React.FC = () => {
     });
   };
 
+  /**
+   * Generates a new spirit blueprint using the Gemini AI Core.
+   */
   const generateMeeBot = async () => {
-    if (!prompt.trim()) return notify('error', 'โปรดระบุลักษณะของจิตวิญญาณ MeeBot');
+    if (!prompt.trim()) return notify('error', 'Please define the spirit characteristics.');
     
     setIsGenerating(true);
     setGlobalLoading('general', true);
     triggerWarpRitual();
     
+    logger.ritual('AI_MANIFESTATION', true, { prompt });
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      // Optimized prompt to match the aesthetic of "MeeChain Spirit" from user image 1
-      const enhancedPrompt = `A cute 3D chibi-style mechanical MeeBot robot, large circular glowing cyan blue eyes, white metallic body, ${prompt}, holding a vibrant glowing pink lotus flower in its mechanical palm, wearing a red traditional sash with a gold medallion, standing in a dreamy space nebula with floating planets and abstract shapes, toy photography style, smooth clay-like textures, cinematic lighting, vibrant 8k render.`;
+      // Aesthetic constraint prompt
+      const enhancedPrompt = `A high-quality 3D chibi-style mechanical MeeBot robot, large circular glowing cyan blue eyes, white sleek metallic body, ${prompt}, holding a vibrant glowing lotus flower, standing in a dreamy cosmic nebula with floating planets, Octane render, cinematic lighting, 8k masterpiece.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -76,126 +101,175 @@ const MintPage: React.FC = () => {
       if (rawImage) {
         const finishedAsset = await applyWatermark(rawImage);
         setGeneratedImage(finishedAsset);
-        notify('success', 'MeeBot Spirit Manifested!');
+        notify('success', 'Spirit manifested in the preview rig.');
       } else {
-        throw new Error("Empty manifestation result");
+        throw new Error("Neural output empty.");
       }
     } catch (err: any) {
-      console.error("Manifestation Error:", err);
-      notify('error', `Neural link failed: ${err.message || 'Quantum turbulence detected'}. Try again.`);
+      logger.error("Manifestation Error", err);
+      notify('error', `Neural Link unstable: ${err.message || 'Quantum turbulence'}.`);
     } finally {
       setIsGenerating(false);
       setGlobalLoading('general', false);
     }
   };
 
+  /**
+   * Finalizes the anchoring of the spirit to the blockchain substrate.
+   */
   const handleMint = async () => {
-    if (!state.account || !generatedImage) return notify('error', 'Neural Link not established or image missing.');
+    if (!state.account || !generatedImage) return notify('error', 'Neural Link required for anchoring.');
     
-    setIsMinting(true);
     setGlobalLoading('general', true);
     try {
-      await new Promise(r => setTimeout(r, 2000));
+      // Execute Blockchain Ritual
+      const hash = await writeContractAsync({
+        address: ADRS.nft,
+        abi: ABIS.nft as any,
+        functionName: 'mintMeeBot',
+        args: [prompt || "AI_Summoned", generatedImage],
+      } as any);
+
       const tokenId = Math.floor(Math.random() * 9000) + 1000;
       
-      const newBot = {
+      // Determine Rarity (Probabilistic Manifestation)
+      const rarityRoll = Math.random();
+      const rarity = rarityRoll > 0.95 ? "Legendary" : rarityRoll > 0.75 ? "Epic" : "Common";
+
+      const newBot: any = {
         id: tokenId.toString(),
         name: generateMeeBotName(tokenId.toString()),
-        rarity: Math.random() > 0.9 ? "Legendary" : Math.random() > 0.7 ? "Epic" : "Common" as any,
+        rarity,
         energyLevel: 0,
         stakingStart: null,
         isStaking: false,
         image: generatedImage,
         baseStats: {
-          power: 40 + Math.random() * 20,
-          speed: 40 + Math.random() * 20,
-          intel: 40 + Math.random() * 20
+          power: rarity === 'Legendary' ? 90 + Math.random() * 10 : rarity === 'Epic' ? 65 + Math.random() * 20 : 40 + Math.random() * 20,
+          speed: rarity === 'Legendary' ? 90 + Math.random() * 10 : rarity === 'Epic' ? 65 + Math.random() * 20 : 40 + Math.random() * 20,
+          intel: rarity === 'Legendary' ? 90 + Math.random() * 10 : rarity === 'Epic' ? 65 + Math.random() * 20 : 40 + Math.random() * 20,
         },
-        components: ["Modular Plating", "Core Processor", "Sensory Array", "Energy Conduit"] // Default components for new bots
+        components: rarity === 'Legendary' ? ["Crystalline Chassis", "Singularity Core"] : ["Standard Plating"]
       };
 
       addBot(newBot);
-
       addEvent({
         type: 'Minted',
         contract: 'NFT',
         from: '0x0000000000000000000000000000000000000000',
         to: state.account,
         tokenId: tokenId.toString(),
-        hash: `0x${Math.random().toString(16).slice(2, 66)}`
+        hash: hash
       });
 
       triggerSuccessRitual();
       triggerMintRitual();
-      notify('success', `Spirit #${tokenId} anchored to your wallet and gallery!`);
+      notify('success', `Spirit #${tokenId} (${rarity}) anchored to the protocol.`);
       setGeneratedImage(null);
       setPrompt('');
-    } catch (err) {
-      notify('error', 'Anchoring ritual failed.');
+    } catch (err: any) {
+      logger.error("Anchoring Error", err);
+      notify('error', 'Anchoring ritual disrupted: ' + (err.message || 'Substrate rejection.'));
     } finally {
-      setIsMinting(false);
       setGlobalLoading('general', false);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-1000 pb-20">
-      <header className="text-center space-y-4">
-        <h1 className="text-6xl font-black tracking-tighter uppercase italic text-white leading-none">
+    <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-1000 pb-32">
+      <header className="text-center space-y-6">
+        <div className="inline-block glass px-6 py-2 rounded-full border-rose-500/20 mb-2">
+          <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] font-mono">Neural Interface V4.1</p>
+        </div>
+        <h1 className="text-6xl sm:text-8xl font-black tracking-tighter uppercase italic text-white leading-none">
           Spirit <span className="text-rose-500">Manifestor</span>
         </h1>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Neural Interface v4.0</p>
+        <p className="text-slate-400 text-sm sm:text-lg max-w-2xl mx-auto font-medium">
+          Command the Machine Spirit Core to visualize your mechanical destiny and anchor it permanently to the chain.
+        </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <div className="glass p-10 rounded-[3rem] border-white/5 space-y-8 relative overflow-hidden">
-          <div className="space-y-2">
-            <h2 className="text-[10px] font-black uppercase text-rose-500 tracking-widest flex items-center gap-3">
-              <span className="w-2 h-6 bg-rose-500 rounded-full animate-pulse"></span>
-              Input Spirit Code
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        {/* Left: Manifestation Commands */}
+        <div className="glass p-10 sm:p-14 rounded-[3rem] sm:rounded-[4rem] border-white/5 space-y-12 relative overflow-hidden bg-black/40 shadow-2xl">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+             <span className="text-9xl font-black italic">GEN</span>
+          </div>
+
+          <div className="space-y-4 relative z-10">
+            <h2 className="text-[11px] font-black uppercase text-rose-500 tracking-widest flex items-center gap-4">
+              <span className="w-2 h-8 bg-rose-500 rounded-full animate-pulse"></span>
+              Neural Script (Prompt)
             </h2>
-            <p className="text-slate-400 font-medium text-sm">Describe the machine spirit you wish to summon.</p>
+            <p className="text-slate-500 font-medium text-xs uppercase tracking-wider">Define the chassis and elemental affinity.</p>
           </div>
 
           <textarea 
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., A golden guardian with neon wings..."
-            className="w-full h-56 bg-black/40 border-2 border-white/5 rounded-[2rem] p-8 text-white focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 italic text-xl"
-            disabled={isGenerating || isMinting}
+            placeholder="e.g., A crimson fire guardian with floating lava crystals..."
+            className="w-full h-64 bg-black/60 border-2 border-white/5 rounded-[3rem] p-10 text-white focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 italic text-xl font-mono shadow-inner"
+            disabled={isGenerating || state.loadingStates.general}
           />
           
           <button 
             onClick={generateMeeBot}
-            disabled={isGenerating || !prompt.trim() || isMinting}
-            className="w-full bg-rose-500 hover:bg-rose-400 py-6 rounded-3xl font-black text-xs uppercase tracking-[0.5em] shadow-2xl transition-all disabled:opacity-20 text-white flex items-center justify-center gap-4"
+            disabled={isGenerating || !prompt.trim() || state.loadingStates.general}
+            className="w-full h-24 bg-rose-500 hover:bg-rose-400 text-white py-6 rounded-[2.5rem] font-black text-xs sm:text-sm uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(244,63,94,0.3)] transition-all disabled:opacity-20 flex items-center justify-center gap-6 group"
           >
-            {isGenerating ? 'SUMMONING...' : 'MANIFEST SPIRIT'}
+            {isGenerating ? (
+              <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <span className="text-2xl group-hover:rotate-12 transition-transform">✨</span>
+            )}
+            {isGenerating ? 'MANIFESTING...' : 'INITIATE MANIFESTATION'}
           </button>
         </div>
 
-        <div className="space-y-8">
-          <div className="glass aspect-square rounded-[4rem] border-white/5 overflow-hidden flex items-center justify-center relative shadow-2xl bg-black/40">
+        {/* Right: Visualization & Anchoring */}
+        <div className="space-y-12">
+          <div className="glass aspect-square rounded-[4rem] sm:rounded-[6rem] border-white/5 overflow-hidden flex items-center justify-center relative shadow-2xl bg-[#05080f] group">
             {generatedImage ? (
-              <img src={generatedImage} alt="Spirit" className="w-full h-full object-cover animate-in zoom-in-95 duration-700" />
+              <img src={generatedImage} alt="Manifested Spirit" className="w-full h-full object-cover animate-in zoom-in-95 duration-1000" />
             ) : (
-              <div className="text-center opacity-20">
-                <div className="text-8xl mb-6">🌸</div>
-                <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Manifestation</p>
+              <div className="text-center space-y-6 opacity-20">
+                <div className="text-9xl group-hover:scale-110 transition-transform duration-700">🔮</div>
+                <p className="text-[10px] font-black uppercase tracking-[0.8em] font-mono italic">Awaiting Sync...</p>
               </div>
             )}
             <canvas ref={canvasRef} className="hidden" />
+            
+            {/* Visual scanline effect */}
+            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
           </div>
 
           <button 
             onClick={handleMint}
-            disabled={!generatedImage || isMinting}
-            className="w-full h-24 bg-white text-black rounded-[2rem] font-black text-sm uppercase tracking-[0.6em] transition-all disabled:opacity-10 flex items-center justify-center gap-6 shadow-2xl"
+            disabled={!generatedImage || state.loadingStates.general || !state.account}
+            className="w-full h-28 bg-white text-black rounded-[3rem] font-black text-xs sm:text-sm uppercase tracking-[0.7em] transition-all disabled:opacity-10 flex items-center justify-center gap-8 shadow-2xl hover:bg-amber-50 active:scale-95 group relative overflow-hidden"
           >
-            {isMinting ? 'ANCHORING...' : 'PERMANENT ASCENSION'}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-rose-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
+            <span className="text-2xl group-hover:translate-y-[-4px] transition-transform">⚓</span>
+            {state.loadingStates.general ? 'CALIBRATING...' : 'ANCHOR TO CHAIN'}
           </button>
+
+          <div className="flex justify-between items-center px-6">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono">Telemetry: Secure</span>
+            </div>
+            <div className="flex items-center gap-3">
+               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono">Format: Neural_PNG</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 };
