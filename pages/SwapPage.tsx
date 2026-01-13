@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppState';
-import { getSwapQuote, performSwap } from '../lib/services/swap';
-import { ADRS } from '../lib/contracts';
-import { triggerWarpRitual, triggerSuccessRitual } from '../lib/rituals';
+import { getSwapQuote, performSwap, checkAllowance } from '../lib/services/swap';
+import { ADRS, ABIS } from '../lib/contracts';
+import { triggerWarpRitual, triggerSuccessRitual, triggerCelestialRitual } from '../lib/rituals';
 import { logger } from '../lib/logger';
+import { useWriteContract } from 'wagmi';
+import { parseEther } from 'viem';
 
 const SwapPage: React.FC = () => {
   const { state, notify, setGlobalLoading, refreshBalances, addEvent } = useApp();
@@ -11,6 +14,9 @@ const SwapPage: React.FC = () => {
   const [toAmount, setToAmount] = useState('0');
   const [slippage, setSlippage] = useState('0.5');
   const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error', msg: string }>({ type: 'idle', msg: '' });
+  const [needsApproval, setNeedsApproval] = useState(false);
+
+  const { writeContractAsync } = useWriteContract();
 
   const tokens = [
     { symbol: 'MCB', name: 'MeeChain Bot', address: ADRS.token, icon: '💎' },
@@ -28,6 +34,26 @@ const SwapPage: React.FC = () => {
     return '0';
   }, [fromToken, state.balances]);
 
+  // Monitor allowance for the 'from' token
+  useEffect(() => {
+    const updateApprovalStatus = async () => {
+      if (!state.account || fromToken.symbol === 'BNB' || !fromAmount || isNaN(Number(fromAmount))) {
+        setNeedsApproval(false);
+        return;
+      }
+
+      try {
+        const allowance = await checkAllowance(state.account, fromToken.address as `0x${string}`, ADRS.swap);
+        const amountWei = parseEther(fromAmount);
+        setNeedsApproval(allowance < amountWei);
+      } catch (e) {
+        setNeedsApproval(true); // Default to needing approval on error for safety
+      }
+    };
+
+    updateApprovalStatus();
+  }, [fromAmount, fromToken, state.account]);
+
   useEffect(() => {
     const updateQuote = async () => {
       if (!fromAmount || Number(fromAmount) <= 0) {
@@ -44,6 +70,34 @@ const SwapPage: React.FC = () => {
     const timer = setTimeout(updateQuote, 500);
     return () => clearTimeout(timer);
   }, [fromAmount, fromToken, toToken]);
+
+  const handleApprove = async () => {
+    if (!state.account) return;
+    
+    setGlobalLoading('general', true);
+    setStatus({ type: 'loading', msg: `Authorizing Swap Router to access ${fromToken.symbol} Flux...` });
+    triggerCelestialRitual();
+
+    try {
+      const tx = await writeContractAsync({
+        address: fromToken.address as `0x${string}`,
+        abi: ABIS.token as any,
+        functionName: 'approve',
+        args: [ADRS.swap, parseEther('1000000000')], // Infinite-ish approval for ritual convenience
+      });
+
+      logger.ritual('TOKEN_APPROVAL', true, { token: fromToken.symbol, tx });
+      notify('success', `Neural authorization for ${fromToken.symbol} granted.`);
+      setNeedsApproval(false);
+      setStatus({ type: 'success', msg: 'Neural authorization confirmed. Ready for conversion.' });
+    } catch (err: any) {
+      logger.error('Approval Ritual Disrupted', err);
+      setStatus({ type: 'error', msg: 'Authorization ritual failed. Permission denied.' });
+    } finally {
+      setGlobalLoading('general', false);
+      setTimeout(() => setStatus({ type: 'idle', msg: '' }), 4000);
+    }
+  };
 
   const handleSwap = async () => {
     if (!state.account) return notify('error', 'Neural Link required for conversion.');
@@ -180,18 +234,33 @@ const SwapPage: React.FC = () => {
             </div>
           </div>
 
-          <button 
-            onClick={handleSwap}
-            disabled={!fromAmount || state.loadingStates.general}
-            className="w-full h-16 sm:h-24 bg-white text-black font-black text-sm sm:text-xl rounded-2xl sm:rounded-[2.5rem] shadow-2xl transition-all active:scale-95 disabled:opacity-20 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center justify-center gap-3 sm:gap-4 group border-b-4 sm:border-b-8 border-slate-300"
-          >
-            {state.loadingStates.general ? (
-              <div className="w-5 h-5 sm:w-6 sm:h-6 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <span className="group-hover:translate-x-2 transition-transform">⚡</span>
-            )}
-            CONVERT FLUX
-          </button>
+          {needsApproval ? (
+            <button 
+              onClick={handleApprove}
+              disabled={state.loadingStates.general}
+              className="w-full h-16 sm:h-24 bg-amber-500 text-black font-black text-sm sm:text-xl rounded-2xl sm:rounded-[2.5rem] shadow-2xl transition-all active:scale-95 disabled:opacity-20 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center justify-center gap-3 sm:gap-4 group border-b-4 sm:border-b-8 border-amber-800"
+            >
+              {state.loadingStates.general ? (
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="group-hover:rotate-12 transition-transform">🔑</span>
+              )}
+              APPROVE CONVERSION
+            </button>
+          ) : (
+            <button 
+              onClick={handleSwap}
+              disabled={!fromAmount || state.loadingStates.general}
+              className="w-full h-16 sm:h-24 bg-white text-black font-black text-sm sm:text-xl rounded-2xl sm:rounded-[2.5rem] shadow-2xl transition-all active:scale-95 disabled:opacity-20 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center justify-center gap-3 sm:gap-4 group border-b-4 sm:border-b-8 border-slate-300"
+            >
+              {state.loadingStates.general ? (
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="group-hover:translate-x-2 transition-transform">⚡</span>
+              )}
+              CONVERT FLUX
+            </button>
+          )}
         </div>
       </div>
 
