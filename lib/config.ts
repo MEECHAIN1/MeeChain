@@ -8,7 +8,7 @@ export const CONFIG = {
   VERSION: '4.1.0-STABLE',
   NETWORK: {
   ID: 13390, 
-    RPC: 'https://meechain.run.place', // หรือ RPC ที่คุณตั้งค่าไว้ใน Netlify
+    RPC: 'https://meechain.run.place',
     EXPLORER: 'https://meechainScan.run.place'
   },
   TOKENS: {
