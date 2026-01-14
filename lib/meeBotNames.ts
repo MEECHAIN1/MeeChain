@@ -1,6 +1,6 @@
 /**
- * MeeBot Name Generation Utility (Deterministic Version)
- * มั่นใจได้ว่า ID เดิมจะได้ชื่อเดิมเสมอ ไม่ว่าจะรีเฟรชกี่ครั้ง
+ * MeeBot Identity System
+ * ระบบสร้างชื่อและจัดระดับความหายากแบบคงที่ (Deterministic)
  */
 
 const prefixes = [
@@ -18,24 +18,59 @@ const suffixes = [
 ];
 
 /**
- * Generates a consistent mystical name based on the unique ID.
- * @param id - The unique identifier (tokenId)
+ * 1. สร้างชื่อที่คงที่ตาม ID
  */
 export const generateMeeBotName = (id: string): string => {
   if (!id) return "Unknown-Unit";
-
-  // 1. สร้างค่าตัวเลขคงที่จาก String ID (Hashing)
-  const seed = id.split('').reduce((acc, char) => {
-    return acc + char.charCodeAt(0);
-  }, 0);
-
-  // 2. เลือก Prefix และ Suffix โดยใช้ Modulo (%) กับค่า Seed
-  // ใช้สูตรคณิตศาสตร์ต่างกันเล็กน้อยเพื่อให้ Prefix และ Suffix ไม่ซ้ำทางกัน
+  const seed = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
   const prefixIndex = seed % prefixes.length;
-  const suffixIndex = (seed * 7 + 13) % suffixes.length; 
+  const suffixIndex = (seed * 13 + 7) % suffixes.length; 
 
-  const prefix = prefixes[prefixIndex];
-  const suffix = suffixes[suffixIndex];
+  return `${prefixes[prefixIndex]}-${suffixes[suffixIndex]}-${id}`;
+};
 
-  return `${prefix}-${suffix}-${id}`;
+/**
+ * 2. คำนวณความหายากและสีสันจากชื่อ
+ */
+export const getMeeBotRarity = (name: string) => {
+  const n = name.toUpperCase();
+  
+  // ระดับ Legendary (สีทอง/ส้ม)
+  if (n.includes("CELESTIAL") || n.includes("ETERNAL") || n.includes("GIGA") || n.includes("SOVEREIGN")) {
+    return {
+      label: "LEGENDARY",
+      color: "#f59e0b", // Amber 500
+      bg: "rgba(245, 158, 11, 0.1)",
+      glow: "0 0 20px rgba(245, 158, 11, 0.4)"
+    };
+  }
+  
+  // ระดับ Epic (สีม่วง)
+  if (n.includes("QUANTUM") || n.includes("VOID") || n.includes("NEBULA") || n.includes("PHANTOM")) {
+    return {
+      label: "EPIC",
+      color: "#818cf8", // Indigo 400
+      bg: "rgba(129, 140, 248, 0.1)",
+      glow: "0 0 20px rgba(129, 140, 248, 0.4)"
+    };
+  }
+  
+  // ระดับ Rare (สีฟ้า)
+  if (n.includes("NOVA") || n.includes("SPECTRAL") || n.includes("FLUX")) {
+    return {
+      label: "RARE",
+      color: "#22d3ee", // Cyan 400
+      bg: "rgba(34, 211, 238, 0.1)",
+      glow: "0 0 15px rgba(34, 211, 238, 0.3)"
+    };
+  }
+
+  // ระดับ Common (สีเขียว/เทา)
+  return {
+    label: "COMMON",
+    color: "#94a3b8", // Slate 400
+    bg: "rgba(148, 163, 184, 0.05)",
+    glow: "none"
+  };
 };
