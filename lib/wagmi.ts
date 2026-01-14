@@ -6,7 +6,7 @@ import { injected, walletConnect } from 'wagmi/connectors';
 const metadata = {
   name: 'MeeBot Chain',
   description: 'MeeBot Ecosystem Ritual Portal',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://meebot.meechain.io',
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://meechain.run.place',
   icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
