@@ -15,6 +15,6 @@ export const meechain: Chain = {
     public: { http: ['https://meechain.run.place/', 'https://meechain.llamarpc.com'] },
   },
   blockExplorers: {
-    default: { name: 'mcbScan', url: 'https://meechainscan.com' },
+    default: { name: 'mcbScan', url: 'https://meechainScan.run.place' },
   },
 };
