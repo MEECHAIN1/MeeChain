@@ -1,6 +1,8 @@
 import { createPublicClient, http } from 'viem';
 import { meechain } from './constants/chains';
 
+export { meechain };
+
 const PRIMARY_RPC = "https://meechain.run.place";
 
 export const client = createPublicClient({
@@ -12,5 +14,5 @@ export const client = createPublicClient({
   }),
   batch: {
     multicall: true, 
-  }
-});
+  }, // ปิดปีกกาของ batch ตรงนี้
+}); // ปิดวงเล็บของ createPublicClient ตรงนี้
