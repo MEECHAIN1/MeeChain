@@ -148,15 +148,16 @@
       <div class="splash-logo">M</div>
       <div class="boot-loader">
         <div class="boot-bar"></div>
-      </div>
       <div class="boot-text">Neural Initialization...</div>
-    </div>
+     </div>
     <div id="root"></div>
     <script type="module" src="/main.tsx"></script>
+   <script>
       window.addEventListener('load', () => {
         setTimeout(() => {
           document.body.classList.add('loaded');
         }, 2000);
       });
+    </script>
   </body>
 </html>
