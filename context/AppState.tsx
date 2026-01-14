@@ -65,6 +65,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   });
 
+const { chain } = useAccount();
+if (chain?.id !== CONFIG.NETWORK.ID) {
+   notify('warning', 'Please switch to MeeChain Ritual Network');
+   return;
+}
+  
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
   useEffect(() => {
