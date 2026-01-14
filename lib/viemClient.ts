@@ -14,5 +14,5 @@ export const client = createPublicClient({
   }),
   batch: {
     multicall: true, 
-  }, // ปิดปีกกาของ batch ตรงนี้
-}); // ปิดวงเล็บของ createPublicClient ตรงนี้
+  }, 
+});
