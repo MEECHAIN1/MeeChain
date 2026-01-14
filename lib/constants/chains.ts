@@ -10,10 +10,10 @@ export const meechain: Chain = {
     name: 'MeeChain',
     symbol: 'MCB',
   },
-  rpcUrls: {
+  rpcUrls: [
     default: { http: ['https://meechain.run.place/', 
     public: { http: ['https://meechain.run.place/',
-  },
+  ],
   blockExplorers: {
     default: { name: 'mcbScan', url: 'https://meechainScan.run.place' },
   },
