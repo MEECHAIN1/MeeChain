@@ -12,4 +12,5 @@ export const client = createPublicClient({
   }),
   batch: {
     multicall: true, 
+  }
 });
