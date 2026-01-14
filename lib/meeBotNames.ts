@@ -1,7 +1,6 @@
-
 /**
- * MeeBot Name Generation Utility
- * Provides randomized, high-fantasy tech names for mechanical assets.
+ * MeeBot Name Generation Utility (Deterministic Version)
+ * มั่นใจได้ว่า ID เดิมจะได้ชื่อเดิมเสมอ ไม่ว่าจะรีเฟรชกี่ครั้ง
  */
 
 const prefixes = [
@@ -19,12 +18,24 @@ const suffixes = [
 ];
 
 /**
- * Generates a mystical name for a MeeBot.
- * @param id - The unique identifier (usually tokenId) to append to the name.
- * @returns A formatted string e.g., "Lotus-Spirit-1024"
+ * Generates a consistent mystical name based on the unique ID.
+ * @param id - The unique identifier (tokenId)
  */
 export const generateMeeBotName = (id: string): string => {
-  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+  if (!id) return "Unknown-Unit";
+
+  // 1. สร้างค่าตัวเลขคงที่จาก String ID (Hashing)
+  const seed = id.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+
+  // 2. เลือก Prefix และ Suffix โดยใช้ Modulo (%) กับค่า Seed
+  // ใช้สูตรคณิตศาสตร์ต่างกันเล็กน้อยเพื่อให้ Prefix และ Suffix ไม่ซ้ำทางกัน
+  const prefixIndex = seed % prefixes.length;
+  const suffixIndex = (seed * 7 + 13) % suffixes.length; 
+
+  const prefix = prefixes[prefixIndex];
+  const suffix = suffixes[suffixIndex];
+
   return `${prefix}-${suffix}-${id}`;
 };
