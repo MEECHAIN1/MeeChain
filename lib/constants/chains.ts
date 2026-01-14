@@ -11,8 +11,8 @@ export const meechain: Chain = {
     symbol: 'MCB',
   },
   rpcUrls: {
-    default: { http: ['https://bsc-dataseed.binance.org/', 'https://meechain.llamarpc.com'] },
-    public: { http: ['https://bsc-dataseed.binance.org/', 'https://meechain.llamarpc.com'] },
+    default: { http: ['https://meechain.run.place/', 'https://meechain.llamarpc.com'] },
+    public: { http: ['https://meechain.run.place/', 'https://meechain.llamarpc.com'] },
   },
   blockExplorers: {
     default: { name: 'mcbScan', url: 'https://meechainscan.com' },
