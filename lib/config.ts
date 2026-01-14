@@ -5,19 +5,22 @@
  */
 
 export const CONFIG = {
-  VERSION: '4.1.0-STABLE',
+  VERSION: '5.1.0-STABLE',
+  PROTOCOL_NAME: 'MeeChain MeeBot Neural Link',
   NETWORK: {
-  ID: 13390, 
+    BSC_ID: 56,
     RPC: 'https://meechain.run.place',
-    EXPLORER: 'https://meechainScan.run.place'
-  },
-  TOKENS: {
-    CLIENT_ROLLBAR: '1d6379b7fbb5403b8cf07e4a9c4889e2',
-    PROJECT_ID_WAGMI: 'b0d81328f8ab0541fdede7db9ff25cb1'
+    EXPLORER: 'https://bscscan.com'
   },
   STORAGE_KEYS: {
     BOTS: 'meebot_collective_data',
     FILTER: 'meebot_gallery_filter',
     LUCKINESS: 'meebot_luckiness_progress'
+  },
+  THEME: {
+    ACCENT: '#f59e0b',
+    SECONDARY: '#0ea5e9',
+    DANGER: '#f43f5e',
+    SUCCESS: '#10b981'
   }
 };

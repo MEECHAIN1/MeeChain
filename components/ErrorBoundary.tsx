@@ -15,8 +15,11 @@ interface State {
  * Global Error Boundary to catch neural link collapses and UI crashes.
  * Monitors the component tree for unexpected exceptions and renders a fallback UI.
  */
-// Use named Component import and explicit state declaration to resolve inheritance property errors in strict TS environments
+// Use named Component import and explicit state/props declaration to resolve inheritance property errors in strict TS environments
 class ErrorBoundary extends Component<Props, State> {
+  // Explicitly declare props property to resolve inheritance property errors in some TS environments
+  public props: Props;
+
   // Explicitly declare state property to ensure existence on the type 'ErrorBoundary'
   public state: State = {
     hasError: false,
@@ -25,6 +28,8 @@ class ErrorBoundary extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
+    // Explicitly assigning props to ensure they are recognized in environments with inheritance visibility issues
+    this.props = props;
     // Initializing state again here if needed, but the property declaration above fixes the TS error
     this.state = {
       hasError: false,

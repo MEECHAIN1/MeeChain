@@ -1,18 +1,20 @@
+
 import { Chain } from 'viem';
 
+// MeeChain Configuration updated to use BNB Smart Chain (BSC) as the primary protocol
 export const meechain: Chain = {
-  id: 13390, // MeeChain
-  name: 'MeeChain Ritual (MCB)',
+  id: 56, // Binance Smart Chain Mainnet
+  name: 'MeeChain Ritual (BSC)',
   nativeCurrency: {
     decimals: 18,
-    name: 'MeeChain',
-    symbol: 'MCB',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
-    default: { http: ['https://meechain.run.place'] },
-    public: { http: ['https://meechain.run.plac'] },
+    default: { http: ['https://bsc-dataseed.binance.org/', 'https://binance.llamarpc.com'] },
+    public: { http: ['https://bsc-dataseed.binance.org/', 'https://binance.llamarpc.com'] },
   },
   blockExplorers: {
-    default: { name: 'mcbScan', url: 'https://meechainScan.run.place' },
+    default: { name: 'BscScan', url: 'https://bscscan.com' },
   },
 };

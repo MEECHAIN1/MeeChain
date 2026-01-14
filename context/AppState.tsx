@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserState, BlockchainEvent, RitualNotification, MeeBot } from '../types';
 import { formatEther } from 'viem';
@@ -9,6 +10,7 @@ import { getRewardRate, getStakedBalance } from '../lib/services/staking';
 import { generateMeeBotName } from '../lib/meeBotNames';
 import { logger } from '../lib/logger';
 import { CONFIG } from '../lib/config';
+import { executeRitual } from '../lib/services/ritual';
 
 interface AppContextType {
   state: UserState;
@@ -33,12 +35,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { address } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
-  
-  const { chain } = useAccount();
-if (chain?.id !== CONFIG.NETWORK.ID) {
-   notify('warning', 'Please switch to MeeChain Ritual Network');
-   return;
-}
 
   const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
@@ -70,9 +66,10 @@ if (chain?.id !== CONFIG.NETWORK.ID) {
       myBots: savedBots ? JSON.parse(savedBots) : []
     };
   });
-  
+
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
+  // Persistent storage sync
   useEffect(() => {
     localStorage.setItem(CONFIG.STORAGE_KEYS.BOTS, JSON.stringify(state.myBots));
   }, [state.myBots]);
@@ -85,75 +82,30 @@ if (chain?.id !== CONFIG.NETWORK.ID) {
     localStorage.setItem(CONFIG.STORAGE_KEYS.LUCKINESS, state.balances.luckiness.toString());
   }, [state.balances.luckiness]);
 
+  // Account sync
   useEffect(() => {
     if (address) {
       setState(prev => ({ ...prev, account: address as `0x${string}` }));
-      logger.info('User wallet connected', { address });
       if (state.myBots.length === 0) {
+        // Initial mock bots for demonstration if none exist
         const initialBots: MeeBot[] = Array.from({ length: 3 }).map((_, i) => {
           const id = (3600 + i).toString();
-          const rarity = i === 0 ? "Epic" : "Common";
           return {
             id,
             name: generateMeeBotName(id),
-            rarity,
+            rarity: i === 0 ? "Epic" : "Common",
             energyLevel: 0,
             stakingStart: null,
             isStaking: false,
             image: `https://picsum.photos/seed/meebot_${id}/1024/1024`,
-            baseStats: {
-              power: 40 + Math.random() * 20,
-              speed: 40 + Math.random() * 20,
-              intel: 40 + Math.random() * 20
-            },
-            components: i === 0
-              ? ["Crystalline Chassis", "Quantum Processor", "Aetheric Link", "Tactical Optics"]
-              : ["Standard Chassis", "Neural Processor", "Basic Sensors"]
+            baseStats: { power: 50, speed: 50, intel: 50 },
+            components: ["Core Logic", "Chassis v4"]
           };
         });
         setState(prev => ({ ...prev, myBots: initialBots }));
       }
     }
   }, [address]);
-
-  const addBot = useCallback((bot: MeeBot) => {
-    setState(prev => ({
-      ...prev,
-      myBots: [bot, ...prev.myBots],
-      balances: {
-        ...prev.balances,
-        nftCount: prev.balances.nftCount + 1
-      }
-    }));
-  }, []);
-
-  const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
-    setState(prev => ({
-      ...prev,
-      balances: {
-        ...prev.balances,
-        luckiness: reset ? 0 : Math.min(prev.balances.luckiness + amount, 100)
-      }
-    }));
-  }, []);
-
-  const spendGems = useCallback((amount: number) => {
-    let success = false;
-    setState(prev => {
-      if (prev.balances.gems >= amount) {
-        success = true;
-        return {
-          ...prev,
-          balances: {
-            ...prev.balances,
-            gems: prev.balances.gems - amount
-          }
-        };
-      }
-      return prev;
-    });
-    return success;
-  }, []);
 
   const setGlobalLoading = useCallback((key: keyof UserState['loadingStates'], isLoading: boolean) => {
     setState(prev => ({
@@ -162,80 +114,18 @@ if (chain?.id !== CONFIG.NETWORK.ID) {
     }));
   }, []);
 
-  const toggleBotStaking = useCallback(async (botId: string) => {
-    setGlobalLoading('staking', true);
-    
-    // Find bot for telemetry
-    const targetBot = state.myBots.find(b => b.id === botId);
-    if (targetBot) {
-      logger.ritual('INFUSION_STAKING', true, {
-        phase: 'START',
-        botId,
-        rarity: targetBot.rarity,
-        action: targetBot.isStaking ? 'DEACTIVATE' : 'ACTIVATE'
-      });
-    }
-
-    await new Promise(r => setTimeout(r, 1500));
-
-    setState(prev => {
-      const botIndex = prev.myBots.findIndex(b => b.id === botId);
-      if (botIndex === -1) {
-        logger.error('Failed to toggle staking: Bot not found', { botId });
-        return prev;
-      }
-
-      const bot = prev.myBots[botIndex];
-      const activating = !bot.isStaking;
-      
-      const newBots = [...prev.myBots];
-      newBots[botIndex] = {
-        ...bot,
-        isStaking: activating,
-        stakingStart: activating ? Date.now() : null
-      };
-
-      logger.ritual('INFUSION_STAKING', true, { 
-        phase: 'SUCCESS',
-        botId, 
-        active: activating,
-        energyLevel: bot.energyLevel 
-      });
-      
-      return { ...prev, myBots: newBots };
-    });
-    
-    setGlobalLoading('staking', false);
-  }, [setGlobalLoading, state.myBots]);
-
   const notify = useCallback((type: RitualNotification['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
     setState(prev => ({
       ...prev,
       notifications: [...prev.notifications, { id, type, message, timestamp: Date.now() }]
     }));
-    if (type === 'error') logger.error(`Notification Error: ${message}`);
-    
     setTimeout(() => {
       setState(current => ({
         ...current,
         notifications: current.notifications.filter(n => n.id !== id)
       }));
     }, 5000);
-  }, []);
-
-  const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
-    const newEvent: BlockchainEvent = {
-      ...event,
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-    };
-    setEvents(prev => [newEvent, ...prev].slice(0, 50));
-    logger.info(`Blockchain Event: ${event.type}`, event);
-  }, []);
-
-  const setGalleryFilter = useCallback((filter: string) => {
-    setState(prev => ({ ...prev, galleryFilter: filter }));
   }, []);
 
   const refreshBalances = useCallback(async () => {
@@ -259,65 +149,102 @@ if (chain?.id !== CONFIG.NETWORK.ID) {
           native: nativeRes.status === 'fulfilled' ? formatEther(nativeRes.value) : prev.balances.native,
           token: tokenRes.status === 'fulfilled' ? formatEther(tokenRes.value) : prev.balances.token,
           staked: stakedRes.status === 'fulfilled' ? formatEther(stakedRes.value) : prev.balances.staked,
-          nftCount: prev.myBots.length || (nftRes.status === 'fulfilled' ? Number(nftRes.value) : prev.balances.nftCount),
           rewardRate: rewardRes.status === 'fulfilled' ? formatEther(rewardRes.value) : prev.balances.rewardRate
         }
       }));
     } catch (e) {
-      logger.error('Failed to sync balances from chain', e);
+      logger.error('Failed to sync telemetry', e);
     } finally {
-      await new Promise(r => setTimeout(r, 400));
       setGlobalLoading('balances', false);
     }
-  }, [address, setGlobalLoading, state.myBots.length]);
+  }, [address, setGlobalLoading]);
+
+  // Neural Heartbeat (Auto-Polling)
+  useEffect(() => {
+    if (!address) return;
+    refreshBalances(); // Initial fetch
+    const interval = setInterval(refreshBalances, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [address, refreshBalances]);
+
+  const toggleBotStaking = useCallback(async (botId: string) => {
+    await executeRitual(
+      'STAKE',
+      async () => {
+        await new Promise(r => setTimeout(r, 1500)); // Simulate chain work
+        setState(prev => {
+          const newBots = [...prev.myBots];
+          const idx = newBots.findIndex(b => b.id === botId);
+          if (idx !== -1) {
+            newBots[idx] = { 
+              ...newBots[idx], 
+              isStaking: !newBots[idx].isStaking,
+              stakingStart: !newBots[idx].isStaking ? Date.now() : null 
+            };
+          }
+          return { ...prev, myBots: newBots };
+        });
+        return botId;
+      },
+      {
+        setLoading: setGlobalLoading,
+        loadingKey: 'staking',
+        notify,
+        successMessage: 'Rig manifest adjusted successfully.'
+      }
+    );
+  }, [setGlobalLoading, notify]);
+
+  // Rest of the methods...
+  const addBot = useCallback((bot: MeeBot) => {
+    setState(prev => ({ ...prev, myBots: [bot, ...prev.myBots] }));
+  }, []);
+
+  const updateLuckiness = useCallback((amount: number, reset: boolean = false) => {
+    setState(prev => ({
+      ...prev,
+      balances: { ...prev.balances, luckiness: reset ? 0 : Math.min(prev.balances.luckiness + amount, 100) }
+    }));
+  }, []);
+
+  const spendGems = useCallback((amount: number) => {
+    let success = false;
+    setState(prev => {
+      if (prev.balances.gems >= amount) {
+        success = true;
+        return { ...prev, balances: { ...prev.balances, gems: prev.balances.gems - amount } };
+      }
+      return prev;
+    });
+    return success;
+  }, []);
 
   const connectWallet = async (connector?: any) => {
     setState(prev => ({ ...prev, isConnecting: true }));
     try {
-      const targetConnector = connector || connectors[0];
-      await connectAsync({ connector: targetConnector });
+      await connectAsync({ connector: connector || connectors[0] });
     } catch (err: any) {
-      notify('error', `Connection Failed: ${err.message}`);
-      logger.error('Wallet connection failed', err);
+      notify('error', `Link failed: ${err.message}`);
     } finally {
       setState(prev => ({ ...prev, isConnecting: false }));
     }
   };
 
   const disconnectWallet = async () => {
-    try {
-      await disconnectAsync();
-      setState(prev => ({ ...prev, account: null }));
-      logger.info('User wallet disconnected manually');
-    } catch (err: any) {
-      notify('error', 'Disconnection Failed');
-      logger.error('Wallet disconnection failed', err);
-    }
+    await disconnectAsync();
+    setState(prev => ({ ...prev, account: null }));
   };
 
-  const removeNotification = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      notifications: prev.notifications.filter(n => n.id !== id)
-    }));
+  const addEvent = useCallback((event: Omit<BlockchainEvent, 'id' | 'timestamp'>) => {
+    setEvents(prev => [{ ...event, id: Math.random().toString(36).substr(2, 9), timestamp: Date.now() }, ...prev].slice(0, 50));
   }, []);
 
   return (
     <AppContext.Provider value={{
-      state,
-      events,
-      connectWallet,
-      disconnectWallet,
-      refreshBalances,
-      addEvent,
-      setGlobalLoading,
-      setGalleryFilter,
-      notify,
-      removeNotification,
-      toggleBotStaking,
-      addBot,
-      updateLuckiness,
-      spendGems
+      state, events, connectWallet, disconnectWallet, refreshBalances,
+      addEvent, setGlobalLoading, setGalleryFilter: (f) => setState(s => ({...s, galleryFilter: f})),
+      notify, removeNotification: (id) => setState(s => ({...s, notifications: s.notifications.filter(n => n.id !== id)})),
+      toggleBotStaking, addBot, updateLuckiness, spendGems
     }}>
       {children}
     </AppContext.Provider>

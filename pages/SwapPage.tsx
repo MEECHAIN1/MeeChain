@@ -47,7 +47,7 @@ const SwapPage: React.FC = () => {
         const amountWei = parseEther(fromAmount);
         setNeedsApproval(allowance < amountWei);
       } catch (e) {
-        setNeedsApproval(true);
+        setNeedsApproval(true); // Default to needing approval on error for safety
       }
     };
 
