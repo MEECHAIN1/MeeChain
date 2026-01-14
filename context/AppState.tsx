@@ -33,6 +33,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { address } = useAccount();
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
+  
+  const { chain } = useAccount();
+if (chain?.id !== CONFIG.NETWORK.ID) {
+   notify('warning', 'Please switch to MeeChain Ritual Network');
+   return;
+}
 
   const [state, setState] = useState<UserState>(() => {
     const savedBots = localStorage.getItem(CONFIG.STORAGE_KEYS.BOTS);
@@ -64,12 +70,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       myBots: savedBots ? JSON.parse(savedBots) : []
     };
   });
-
-const { chain } = useAccount();
-if (chain?.id !== CONFIG.NETWORK.ID) {
-   notify('warning', 'Please switch to MeeChain Ritual Network');
-   return;
-}
   
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
