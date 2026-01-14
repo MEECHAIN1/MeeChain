@@ -1,7 +1,7 @@
-
 import { client } from "../viemClient";
 import { ABIS, ADRS } from "../contracts";
 import { parseEther } from "viem";
+
 export async function getTokenBalance(account: `0x${string}`): Promise<bigint> {
   if (!account) return 0n;
   try {
