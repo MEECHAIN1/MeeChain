@@ -4,8 +4,7 @@
  * Handles success celebrations and visual feedback rituals.
  * Audio removed to prevent "source not found" errors in restricted environments.
  */
-
-declare const confetti: any;
+import confetti from 'canvas-confetti';
 
 export const triggerSuccessRitual = () => {
   if (typeof confetti !== 'undefined') {
