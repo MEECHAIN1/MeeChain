@@ -7,9 +7,9 @@
 export const CONFIG = {
   VERSION: '4.1.0-STABLE',
   NETWORK: {
-    BSC_ID: 56,
-    RPC: 'https://bsc-dataseed.binance.org/',
-    EXPLORER: 'https://bscscan.com'
+  ID: 13390, 
+    RPC: 'https://meechain.run.place', // หรือ RPC ที่คุณตั้งค่าไว้ใน Netlify
+    EXPLORER: 'https://meechainScan.run.place'
   },
   TOKENS: {
     CLIENT_ROLLBAR: '1d6379b7fbb5403b8cf07e4a9c4889e2',
