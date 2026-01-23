@@ -3,11 +3,17 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useApp } from '../context/AppState';
 import { MeeBot } from '../types';
 
+/**
+ * 🖼️ Mechanical Sanctum (GalleryPage)
+ * A high-fidelity visualization of the user's MeeBot collective.
+ * Features a persistent rarity filter and real-time telemetry stats.
+ */
 const GalleryPage: React.FC = () => {
   const { state, setGalleryFilter, setGlobalLoading, refreshBalances } = useApp();
   const [localDropdownOpen, setLocalDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown when clicking outside the container
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -18,6 +24,8 @@ const GalleryPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Filter logic: Merges global state with local display requirements
+  // The persistence is handled in AppState.tsx via localStorage sync
   const filteredNfts = useMemo(() => {
     if (state.galleryFilter === 'All') return state.myBots;
     return state.myBots.filter(nft => nft.rarity === state.galleryFilter);
@@ -25,17 +33,17 @@ const GalleryPage: React.FC = () => {
 
   const handleRefreshGallery = async () => {
     setGlobalLoading('gallery', true);
-    // Simulate deep asset scan
-    await new Promise(r => setTimeout(r, 1500));
+    // Deep scan simulation for thematic immersion
+    await new Promise(r => setTimeout(r, 1200));
     await refreshBalances();
     setGlobalLoading('gallery', false);
   };
 
   const filterOptions = [
-    { label: 'ALL UNITS', value: 'All' },
-    { label: 'LEGENDARY', value: 'Legendary', color: 'text-amber-500' },
-    { label: 'EPIC', value: 'Epic', color: 'text-purple-500' },
-    { label: 'COMMON', value: 'Common', color: 'text-sky-500' },
+    { label: 'ALL UNITS', value: 'All', icon: '🌐' },
+    { label: 'LEGENDARY', value: 'Legendary', color: 'text-amber-500', icon: '👑' },
+    { label: 'EPIC', value: 'Epic', color: 'text-purple-500', icon: '💠' },
+    { label: 'COMMON', value: 'Common', color: 'text-sky-500', icon: '🤖' },
   ];
 
   const getComponentRarity = (name: string) => {
@@ -72,20 +80,24 @@ const GalleryPage: React.FC = () => {
             <span>🔄</span> Scan Sector
           </button>
 
+          {/* Persistent Rarity Filter Dropdown */}
           <div className="relative w-full sm:w-72" ref={dropdownRef}>
             <button 
               onClick={() => setLocalDropdownOpen(!localDropdownOpen)}
               className="w-full bg-black/40 border-2 border-white/5 px-8 py-5 rounded-[2rem] flex items-center justify-between group hover:border-amber-500/30 transition-all shadow-xl font-mono"
             >
-              <span className="text-[10px] font-black text-white tracking-widest uppercase italic">
-                Sector: {state.galleryFilter.toUpperCase()}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-amber-500/50">📡</span>
+                <span className="text-[10px] font-black text-white tracking-widest uppercase italic">
+                   {state.galleryFilter === 'All' ? 'ALL UNITS' : state.galleryFilter.toUpperCase()}
+                </span>
+              </div>
               <span className={`text-amber-500 transition-transform duration-300 ${localDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
 
             {localDropdownOpen && (
               <div className="absolute top-full left-0 w-full mt-4 glass border border-white/10 rounded-[2rem] overflow-hidden z-[60] shadow-2xl animate-in slide-in-from-top-4 font-mono">
-                <div className="p-2 space-y-1">
+                <div className="p-2 space-y-1 bg-[#0a0f1a]/95 backdrop-blur-3xl">
                   {filterOptions.map((opt) => (
                     <button
                       key={opt.value}
@@ -97,7 +109,11 @@ const GalleryPage: React.FC = () => {
                         state.galleryFilter === opt.value ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400'
                       }`}
                     >
-                      <span className={opt.color || ''}>{opt.label}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm">{opt.icon}</span>
+                        <span className={opt.color || ''}>{opt.label}</span>
+                      </div>
+                      {state.galleryFilter === opt.value && <span className="text-[10px]">●</span>}
                     </button>
                   ))}
                 </div>
@@ -115,6 +131,18 @@ const GalleryPage: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl font-black uppercase italic tracking-tighter mb-6 text-white">Neural Link Offline</h2>
           <p className="text-slate-500 max-w-lg mb-12 font-medium">Authentication required to visualize the mechanical collection.</p>
         </div>
+      ) : filteredNfts.length === 0 ? (
+        <div className="glass p-24 rounded-[4rem] text-center border-dashed border-white/5 flex flex-col items-center animate-in fade-in duration-700">
+          <div className="text-6xl mb-6 opacity-20">🌫️</div>
+          <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">No Units Detected</h3>
+          <p className="text-slate-500 mt-2 font-mono text-[10px] uppercase tracking-widest">Sector {state.galleryFilter.toUpperCase()} returns zero resonance.</p>
+          <button 
+            onClick={() => setGalleryFilter('All')}
+            className="mt-8 px-10 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all"
+          >
+            Clear Filters
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 pb-32">
           {filteredNfts.map((nft) => (
@@ -131,112 +159,51 @@ const GalleryPage: React.FC = () => {
                 
                 <div className="absolute top-6 left-6 flex flex-col gap-2">
                   <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] backdrop-blur-xl border ${
-                    nft.rarity === 'Legendary' ? 'bg-amber-500/30 text-amber-200 border-amber-500/50' :
-                    nft.rarity === 'Epic' ? 'bg-purple-500/30 text-purple-200 border-purple-500/50' :
-                    'bg-sky-500/30 text-sky-200 border-sky-500/50'
+                    nft.rarity === 'Legendary' 
+                      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                    nft.rarity === 'Epic' 
+                      ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : 
+                    'bg-sky-500/10 text-sky-500 border-sky-500/20'
                   }`}>
                     {nft.rarity}
                   </span>
                 </div>
-
-                <div className="absolute top-6 right-6">
-                  <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/5 flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
-                    <span className="text-[9px] font-black text-white font-mono uppercase tracking-widest">NR: {nft.id}</span>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-6 left-6 right-6">
-                  <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic truncate drop-shadow-lg">
-                    {nft.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">Energy Potential</span>
-                    <div className="h-1 w-20 bg-white/5 rounded-full overflow-hidden">
-                       <div className="h-full bg-amber-500" style={{ width: `${Math.min(nft.energyLevel * 2, 100)}%` }}></div>
-                    </div>
-                    <span className="text-[9px] font-black text-amber-500 font-mono">{nft.energyLevel} MCB</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Data Content */}
-              <div className="p-8 space-y-8">
-                {/* Core Components Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <span className="text-amber-500">🛠️</span> Core Components
-                    </h4>
-                    <span className="text-[8px] font-bold text-slate-700 font-mono italic">Tech-Scan Active</span>
+              {/* Data Section */}
+              <div className="p-8 space-y-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-black italic text-white uppercase tracking-tighter group-hover:text-amber-500 transition-colors">
+                      {nft.name}
+                    </h3>
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1 font-mono">
+                      UNIT_ID: #{nft.id}
+                    </p>
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest font-mono">Integrated Components</p>
                   <div className="flex flex-wrap gap-2">
-                    {nft.components.map((component, idx) => {
-                      const rarity = getComponentRarity(component);
+                    {nft.components.map((comp, idx) => {
+                      const rarity = getComponentRarity(comp);
                       return (
-                        <div 
-                          key={idx} 
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border ${rarity.border} transition-all hover:bg-white/[0.06] group/item relative overflow-hidden`}
-                        >
-                          <div className={`w-1.5 h-1.5 rounded-full ${rarity.color} ${rarity.shadow}`}></div>
-                          <span className="text-[9px] font-black uppercase text-slate-300 tracking-tight leading-none">
-                            {component}
-                          </span>
-                          <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${rarity.color} opacity-30`}></div>
-                        </div>
+                        <span key={idx} className={`px-3 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest border ${rarity.border} ${rarity.color}/10 ${rarity.color.replace('bg-', 'text-')}`}>
+                          {comp}
+                        </span>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Telemetry Stats Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <span className="text-sky-500">📊</span> Telemetry Stats
-                    </h4>
-                    <span className="text-[8px] font-bold text-slate-700 font-mono italic">Real-Time Sync</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 font-mono">
-                    {[
-                      { label: 'PWR', value: Math.floor(nft.baseStats.power + nft.energyLevel * 1.5), max: 250, color: 'bg-rose-500', name: 'Power Level' },
-                      { label: 'SPD', value: Math.floor(nft.baseStats.speed + nft.energyLevel * 1.2), max: 250, color: 'bg-sky-500', name: 'Neural Velocity' },
-                      { label: 'INT', value: Math.floor(nft.baseStats.intel + nft.energyLevel * 2.0), max: 250, color: 'bg-emerald-500', name: 'Cognitive Matrix' }
-                    ].map((stat) => (
-                      <div key={stat.label} className="space-y-1.5 group/stat">
-                        <div className="flex justify-between items-baseline px-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-white">{stat.label}</span>
-                            <span className="text-[7px] font-bold text-slate-600 uppercase tracking-widest opacity-0 group-hover/stat:opacity-100 transition-opacity">
-                              {stat.name}
-                            </span>
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xs font-black text-white">{stat.value}</span>
-                            <span className="text-[8px] font-bold text-slate-700">/{stat.max}</span>
-                          </div>
-                        </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                          <div 
-                            className={`h-full ${stat.color} transition-all duration-1000 shadow-[0_0_10px_currentColor] opacity-80`} 
-                            style={{ width: `${Math.min((stat.value / stat.max) * 100, 100)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button 
-                    onClick={() => window.location.hash = '#/staking'}
-                    className="flex-grow bg-white/[0.05] hover:bg-white/[0.1] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] border border-white/5 transition-all active:scale-95 flex items-center justify-center gap-3"
-                  >
-                    Open Rig ⚡
-                  </button>
-                  <button className="w-14 h-14 bg-white/[0.05] border border-white/5 rounded-2xl flex items-center justify-center hover:bg-white/[0.1] transition-all text-lg group/share">
-                    <span className="group-hover:scale-110 transition-transform">📁</span>
-                  </button>
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5 font-mono">
+                  {Object.entries(nft.baseStats).map(([key, val]) => (
+                    <div key={key} className="text-center">
+                      <p className="text-[7px] text-slate-600 font-black uppercase tracking-widest mb-1">{key}</p>
+                      <p className="text-xs font-black text-white">{val}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
