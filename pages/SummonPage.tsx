@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppState';
 import { triggerSuccessRitual, triggerCelestialRitual, triggerMintRitual, triggerWarpRitual } from '../lib/rituals';
@@ -8,6 +7,7 @@ import { useWriteContract } from 'wagmi';
 import { ADRS, ABIS } from '../lib/contracts';
 import { logger } from '../lib/logger';
 import { executeRitual } from '../lib/services/ritual';
+import { MeeBot } from '../types';
 
 const SummonPage: React.FC = () => {
   const { state, notify, addBot, updateLuckiness, spendGems, addEvent, setGlobalLoading, refreshBalances } = useApp();
@@ -45,6 +45,7 @@ const SummonPage: React.FC = () => {
       'AI_GENERATION',
       async () => {
         triggerWarpRitual();
+        // Create a fresh instance for the request to ensure latest API key is used
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const styledPrompt = `A 3D chibi robot, ${prompt}, techtopia style, high-end 8k render.`;
         const response = await ai.models.generateContent({
@@ -85,12 +86,20 @@ const SummonPage: React.FC = () => {
           args: [prompt || "Uplink", previewImage],
         } as any);
 
-        const rarity = Math.random() > 0.9 ? "Legendary" : "Common";
+        // Fix: Explicitly define rarity type to match MeeBot interface literal types
+        const rarity: "Common" | "Epic" | "Legendary" = Math.random() > 0.9 ? "Legendary" : "Common";
         const id = Math.floor(Math.random() * 9000).toString();
-        const newBot = {
-          id, name: generateMeeBotName(id), rarity, image: previewImage,
-          energyLevel: 0, stakingStart: null, isStaking: false,
-          baseStats: { power: 50, speed: 50, intel: 50 }, components: ["Universal Chassis"]
+        // Fix: Explicitly type the newBot object to ensure compatibility with addBot parameter
+        const newBot: MeeBot = {
+          id,
+          name: generateMeeBotName(id),
+          rarity,
+          image: previewImage,
+          energyLevel: 0,
+          stakingStart: null,
+          isStaking: false,
+          baseStats: { power: 50, speed: 50, intel: 50 },
+          components: ["Universal Chassis"]
         };
 
         spendGems(1);

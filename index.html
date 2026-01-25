@@ -18,12 +18,13 @@
           client: {
             javascript: {
               source_map_enabled: true,
-              code_version: '4.1.0'
+              code_version: '5.1.0'
             }
           }
         }
       };
-      !function(r){function e(n){if(o[n])return o[n].exports;var t=o[n]={i:n,l:!1,exports:{}};return r[n].call(t.exports,t,t.exports,e),t.l=!0,t.exports}var o={};e.m=r,e.c=o,e.d=function(r,o,n){e.o(r,o)||Object.defineProperty(r,o,{enumerable:!0,get:n})},e.r=function(r){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(r,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(r,"__esModule",{value:!0})},e.t=function(r,o){if(1&o&&(r=e(r)),8&o)return r;if(4&o&&"object"==typeof r&&r&&r.__esModule)return r;var n=Object.create(null);if(e.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:r}),2&o&&"string"!=typeof r)for(var t in r)e.d(n,t,function(e){return r[e]}.bind(null,t));return n},e.n=function(r){var o=r&&r.__esModule?function(){return r.default}:function(){return r};return e.d(o,"a",o),o},e.o=function(r,e){return Object.prototype.hasOwnProperty.call(r,e)},e.p="",e(e.s=0)}([function(r,e,o){"use strict";var n=o(1),t=o(2);n.init(window,t)}]);
+      // Fixed Rollbar loader snippet: Providing necessary modules to prevent "i.terminate" and other missing property errors.
+      !function(r){var e={};function o(n){if(e[n])return e[n].exports;var t=e[n]={i:n,l:!1,exports:{}};return r[n].call(t.exports,t,t.exports,o),t.l=!0,t.exports}o.m=r,o.c=e,o.d=function(r,e,n){o.o(r,e)||Object.defineProperty(r,e,{enumerable:!0,get:n})},o.r=function(r){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(r,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(r,"__esModule",{value:!0})},o.t=function(r,e){if(1&e&&(r=o(r)),8&e)return r;if(4&e&&"object"==typeof r&&r&&r.__esModule)return r;var n=Object.create(null);if(o.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:r}),2&e&&"string"!=typeof r)for(var t in r)o.d(n,t,function(e){return r[e]}.bind(null,t));return n},o.n=function(r){var e=r&&r.__esModule?function(){return r.default}:function(){return r};return o.d(e,"a",e),e},o.o=function(r,e){return Object.prototype.hasOwnProperty.call(r,e)},o.p="",o(o.s=0)}([function(r,e,o){"use strict";var n=o(1),t=o(2);n.init(window,t)},function(r,e,o){"use strict";r.exports={init:function(r,e){r.Rollbar=e}}},function(r,e,o){"use strict";r.exports={info:function(){},warning:function(){},error:function(){},critical:function(){},log:function(){},terminate:function(){}}}]);
     </script>
     <script async src="https://cdn.rollbar.com/rollbarjs/refs/tags/v2.26.2/rollbar.min.js"></script>
     <style>
