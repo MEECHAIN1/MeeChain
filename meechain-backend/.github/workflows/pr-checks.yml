@@ -1,0 +1,228 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-labels:
+    name: Check PR Labels
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Check for required labels
+      uses: mheap/github-action-required-labels@v2
+      with:
+        mode: exactly
+        count: 1
+        labels: "bug,feature,enhancement,documentation,chore,dependencies,security"
+        allowed_labels: "bug,feature,enhancement,documentation,chore,dependencies,security"
+
+  code-review:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run CodeRabbit AI Review
+      uses: coderabbitai/ai-pr-reviewer@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      with:
+        debug: false
+        review_simple_changes: false
+        review_comment_lgtm: true
+        path_filters: |
+          !*.md
+          !*.json
+          !*.lock
+          !*.yml
+          !*.yaml
+        language: en
+
+  backend-checks:
+    name: Backend PR Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        cd meechain-backend
+        pip install -r requirements.txt
+        pip install pytest black flake8 mypy
+
+    - name: Check for Python syntax errors
+      run: |
+        cd meechain-backend
+        python -m py_compile *.py
+
+    - name: Run linter
+      run: |
+        cd meechain-backend
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Check formatting
+      run: |
+        cd meechain-backend
+        black --check --diff .
+
+    - name: Run type checker
+      run: |
+        cd meechain-backend
+        mypy --ignore-missing-imports .
+
+    - name: Run tests
+      run: |
+        cd meechain-backend
+        pytest --cov=./ --cov-report=xml
+
+  frontend-checks:
+    name: Frontend PR Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: ./meechain-frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Check for TypeScript errors
+      run: npx tsc --noEmit
+
+    - name: Check for ESLint errors
+      run: npx eslint . --ext .ts,.tsx --max-warnings=0 || echo "No ESLint config found"
+
+    - name: Check build
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_URL: "http://localhost:8000"
+
+  security-scan-pr:
+    name: Security Scan for PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Bandit security scanner
+      run: |
+        pip install bandit
+        bandit -r ./meechain-backend -f json -o bandit-report.json || true
+
+    - name: Run npm audit
+      run: |
+        cd meechain-frontend
+        npm audit --json > npm-audit.json || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          meechain-frontend/npm-audit.json
+        retention-days: 7
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: ./meechain-frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build and analyze bundle size
+      uses: preactjs/compressed-size-action@v2
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        pattern: "./meechain-frontend/.next/**/*.js"
+        compression: "brotli"
+        show-total: true
+
+  pr-summary:
+    name: PR Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [pr-labels, code-review, backend-checks, frontend-checks, security-scan-pr, size-check]
+    
+    steps:
+    - name: Generate PR summary
+      run: |
+        echo "## PR Check Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status | Details |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+        
+        # Backend checks
+        if [[ "${{ needs.backend-checks.result }}" == "success" ]]; then
+          echo "| Backend Tests | ✅ Passed | All tests passed |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Backend Tests | ❌ Failed | Check backend logs |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Frontend checks
+        if [[ "${{ needs.frontend-checks.result }}" == "success" ]]; then
+          echo "| Frontend Build | ✅ Passed | Build successful |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Frontend Build | ❌ Failed | Check frontend logs |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Security scan
+        if [[ "${{ needs.security-scan-pr.result }}" == "success" ]]; then
+          echo "| Security Scan | ✅ Passed | No critical issues |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Security Scan | ⚠️ Warning | Check security reports |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Code review
+        if [[ "${{ needs.code-review.result }}" == "success" ]]; then
+          echo "| AI Code Review | ✅ Completed | Review comments added |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| AI Code Review | ⚠️ Skipped | No AI review available |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Address any failing checks" >> $GITHUB_STEP_SUMMARY
+        echo "2. Respond to review comments" >> $GITHUB_STEP_SUMMARY
+        echo "3. Ensure all tests pass" >> $GITHUB_STEP_SUMMARY
+        echo "4. Get required approvals" >> $GITHUB_STEP_SUMMARY

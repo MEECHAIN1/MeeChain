@@ -1,0 +1,77 @@
+version: 2
+updates:
+  # Backend Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps): "
+    open-pull-requests-limit: 10
+    reviewers:
+      - "team-backend"
+    assignees:
+      - "team-backend"
+
+  # Frontend npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/meechain-frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(deps): "
+    open-pull-requests-limit: 10
+    reviewers:
+      - "team-frontend"
+    assignees:
+      - "team-frontend"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(deps): "
+    open-pull-requests-limit: 5
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-devops"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps): "
+    open-pull-requests-limit: 5
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-devops"

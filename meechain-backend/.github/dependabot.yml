@@ -1,0 +1,317 @@
+# Dependabot Configuration for MeeChain
+# 🇹🇭 การตั้งค่า Dependabot สำหรับ MeeChain
+# 🇬🇧 Dependabot configuration for MeeChain
+
+version: 2
+
+updates:
+  # ============================================
+  # Backend - Python Dependencies (FastAPI)
+  # ============================================
+  - package-ecosystem: "pip"
+    directory: "/meechain-backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "chore(deps): "
+      prefix-development: "chore(dev-deps): "
+    labels:
+      - "dependencies"
+      - "python"
+      - "backend"
+    reviewers:
+      - "team-backend"
+    assignees:
+      - "team-backend"
+    open-pull-requests-limit: 10
+    versioning-strategy: "auto"
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "fastapi"
+        versions: ["< 1.0.0", ">= 2.0.0"]
+      - dependency-name: "pydantic"
+        versions: ["< 2.0.0", ">= 3.0.0"]
+      - dependency-name: "uvicorn"
+        versions: ["< 0.20.0", ">= 1.0.0"]
+
+  # ============================================
+  # Frontend - npm Dependencies (Next.js/React)
+  # ============================================
+  - package-ecosystem: "npm"
+    directory: "/meechain-frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "chore(deps): "
+      prefix-development: "chore(dev-deps): "
+    labels:
+      - "dependencies"
+      - "npm"
+      - "frontend"
+    reviewers:
+      - "team-frontend"
+    assignees:
+      - "team-frontend"
+    open-pull-requests-limit: 10
+    versioning-strategy: "increase-if-necessary"
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "next"
+        versions: ["< 14.0.0", ">= 15.0.0"]
+      - dependency-name: "react"
+        versions: ["< 18.0.0", ">= 19.0.0"]
+      - dependency-name: "react-dom"
+        versions: ["< 18.0.0", ">= 19.0.0"]
+      - dependency-name: "typescript"
+        versions: ["< 5.0.0", ">= 6.0.0"]
+
+  # ============================================
+  # GitHub Actions Dependencies
+  # ============================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "chore(ci): "
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-devops"
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore major version updates for critical actions
+      - dependency-name: "actions/checkout"
+        versions: ["< 3.0.0", ">= 4.0.0"]
+      - dependency-name: "actions/setup-python"
+        versions: ["< 4.0.0", ">= 5.0.0"]
+      - dependency-name: "actions/setup-node"
+        versions: ["< 3.0.0", ">= 4.0.0"]
+
+  # ============================================
+  # Docker Dependencies
+  # ============================================
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "chore(docker): "
+    labels:
+      - "dependencies"
+      - "docker"
+      - "container"
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-devops"
+    open-pull-requests-limit: 5
+
+  # ============================================
+  # Security Updates (Critical Dependencies)
+  # ============================================
+  - package-ecosystem: "pip"
+    directory: "/meechain-backend"
+    schedule:
+      interval: "daily"
+      time: "06:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "security(deps): "
+    labels:
+      - "security"
+      - "dependencies"
+      - "critical"
+    reviewers:
+      - "team-security"
+    assignees:
+      - "team-security"
+    open-pull-requests-limit: 20
+    # Only update security vulnerabilities
+    allow:
+      - dependency-type: "direct"
+    # Only create PRs for security updates
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # ============================================
+  # Development Dependencies (Separate Updates)
+  # ============================================
+  - package-ecosystem: "pip"
+    directory: "/meechain-backend"
+    schedule:
+      interval: "monthly"
+      day: "first monday"
+      time: "10:00"
+      timezone: "Asia/Bangkok"
+    commit-message:
+      prefix: "chore(dev-deps): "
+    labels:
+      - "dependencies"
+      - "development"
+      - "testing"
+    reviewers:
+      - "team-backend"
+    assignees:
+      - "team-backend"
+    open-pull-requests-limit: 5
+    # Only update development dependencies
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "flake8"
+          - "mypy"
+          - "bandit"
+        update-types:
+          - "minor"
+          - "patch"
+
+# ============================================
+# Global Configuration
+# ============================================
+registries:
+  # GitHub Packages Registry
+  github:
+    type: "npm-registry"
+    url: "https://npm.pkg.github.com"
+    token: "${{secrets.GITHUB_TOKEN}}"
+    replaces-base: true
+    username: "${{github.actor}}"
+
+# ============================================
+# Security Alerts Configuration
+# ============================================
+security-updates:
+  # Enable security updates
+  enabled: true
+  
+  # Severity levels to create PRs for
+  severity: "high,critical"
+  
+  # Update only direct dependencies for security
+  update-types: "security:all"
+  
+  # Labels for security PRs
+  labels:
+    - "security"
+    - "critical"
+    - "dependencies"
+  
+  # Assign security team
+  assignees:
+    - "team-security"
+  
+  # Reviewers for security PRs
+  reviewers:
+    - "team-security"
+    - "team-backend"
+    - "team-frontend"
+
+# ============================================
+# Pull Request Behavior
+# ============================================
+pull-request-branch-name:
+  separator: "-"
+
+# ============================================
+# Version Update Strategy
+# ============================================
+version-update-strategy:
+  # For production dependencies, be conservative
+  production:
+    strategy: "increase-if-necessary"
+    range-strategy: "bump"
+  
+  # For development dependencies, be more aggressive
+  development:
+    strategy: "increase"
+    range-strategy: "widen"
+
+# ============================================
+# Notification Settings
+# ============================================
+notifications:
+  # Slack notifications for security updates
+  - type: "slack"
+    channels:
+      - "team-backend"
+      - "team-security"
+    events:
+      - "pull_request_opened"
+      - "pull_request_merged"
+    severity: "high,critical"
+  
+  # Email notifications for team leads
+  - type: "email"
+    recipients:
+      - "backend-lead@meechain.io"
+      - "frontend-lead@meechain.io"
+      - "security-lead@meechain.io"
+    events:
+      - "pull_request_opened"
+      - "vulnerability_found"
+    severity: "critical"
+
+# ============================================
+# Custom Messages
+# ============================================
+custom-messages:
+  pull-request-body: |
+    ## 🔄 Dependency Update
+    
+    **🇹🇭 ภาษาไทย:**  
+    Dependabot ได้ตรวจพบการอัปเดต dependencies สำหรับโปรเจคนี้
+    
+    **🇬🇧 English:**  
+    Dependabot has detected dependency updates for this project
+    
+    ### 📋 Update Details
+    - **Package:** {{package}}
+    - **From:** {{from}}
+    - **To:** {{to}}
+    - **Type:** {{type}}
+    - **Changelog:** {{changelog}}
+    
+    ### 🧪 Testing Required
+    - [ ] Run unit tests
+    - [ ] Run integration tests
+    - [ ] Test in staging environment
+    - [ ] Verify no breaking changes
+    
+    ### 🔒 Security Notes
+    {{#if is_security_update}}
+    **⚠️ Security Update:**  
+    This update addresses security vulnerabilities. Please prioritize review and deployment.
+    {{/if}}
+    
+    ### 📚 Resources
+    - [Release Notes]({{release_notes}})
+    - [Changelog]({{changelog}})
+    - [Security Advisories]({{security_advisories}})
+    
+    ---
+    
+    **✨ Automated by Dependabot**  
+    *"Keeping dependencies fresh and secure!"*

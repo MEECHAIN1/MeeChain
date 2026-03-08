@@ -1,0 +1,143 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+*.lcov
+
+# Next.js
+.next/
+out/
+
+# Production
+.cache/
+
+# Misc
+*.tgz
+.yarn-integrity
+
+# Docker
+docker-compose.override.yml
+
+# Local development files
+*.local
+*.dev
+
+# Temporary files
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backend specific
+meechain-backend/__pycache__/
+meechain-backend/.pytest_cache/
+meechain-backend/.coverage
+
+# Frontend specific
+meechain-frontend/.next/
+meechain-frontend/node_modules/
+meechain-frontend/.env.local
+meechain-frontend/.env.development.local
+meechain-frontend/.env.test.local
+meechain-frontend/.env.production.local
+
+# Project specific
+nginx.zip
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+
+# Security
+*.pem
+*.key
+*.crt
+*.csr
+
+# Documentation
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.7z
+
+# Binary files
+*.exe
+*.dll
+*.bin
+*.dat
+
+# Large files
+*.mp4
+*.avi
+*.mov
+*.wmv
