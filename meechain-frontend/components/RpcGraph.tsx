@@ -24,7 +24,7 @@ interface RpcGraphProps {
     quota: string;
     daily_calls?: Array<{ hour: string; calls: number }>;
     methods?: Array<{ method: string; count: number }>;
-    latency_distribution?: Array<{ range: string; count: number }>;
+    latency_distribution?: Array<{ range: string; count: number; color: string }>;
   };
 }
 
@@ -223,7 +223,9 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ range, percent }) => `${range}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ payload, percent }: any) => 
+                    `${payload.range}: ${(percent * 100).toFixed(0)}%`
+                  }
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="count"
