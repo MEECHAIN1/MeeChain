@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # Backend API Service
@@ -41,14 +40,14 @@ services:
       context: ./meechain-frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://api.meechain.io
+        - NEXT_PUBLIC_API_URL=https://meechain.au.auth0.com/api/v2/
     container_name: meechain-frontend
     restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.meechain.io
+      - NEXT_PUBLIC_API_URL=https://meechain.au.auth0.com/api/v2/
     networks:
       - meechain-network
     depends_on:
