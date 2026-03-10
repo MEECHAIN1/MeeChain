@@ -1,0 +1,21 @@
+[Unit]
+Description=MeeChain Monitoring Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/MeeChain
+ExecStart=/opt/MeeChain/monitor.sh
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/meechain/monitor.log
+StandardError=append:/var/log/meechain/monitor-error.log
+
+# Environment
+Environment="SLACK_WEBHOOK_URL="
+Environment="ALERT_EMAIL=devops@meechain.io"
+
+[Install]
+WantedBy=multi-user.target

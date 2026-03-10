@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # Backend API Service
+  meechain-backend:
+    build:
+      context: ./meechain-backend
+      dockerfile: Dockerfile
+    container_name: meechain-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+    env_file:
+      - .env.production
+    volumes:
+      - ./logs:/var/log/meechain
+      - ./backups:/var/backups/meechain
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - meechain-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Frontend Dashboard Service
+  meechain-frontend:
+    build:
+      context: ./meechain-frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://api.meechain.io
+    container_name: meechain-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://api.meechain.io
+    networks:
+      - meechain-network
+    depends_on:
+      - meechain-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: meechain-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - meechain-network
+    depends_on:
+      - meechain-backend
+      - meechain-frontend
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: meechain-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - meechain-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: meechain-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=meechain
+      - POSTGRES_USER=meechain
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - meechain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meechain"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  meechain-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:
