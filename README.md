@@ -131,8 +131,8 @@ MeeChain-Project/
 ### Environment Variables
 ```env
 # Backend
-AUTH0_DOMAIN=your-domain.us.auth0.com
-AUTH0_AUDIENCE=https://api.meechain.io
+AUTH0_DOMAIN=meechain.ua.auth0.com
+AUTH0_AUDIENCE=https://api.meechain.run.place
 NODEREAL_API_KEY=your-nodereal-api-key
 
 # Frontend
