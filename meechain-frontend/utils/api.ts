@@ -38,8 +38,18 @@ export const getLogs = async () => {
 };
 
 // ดึง config (admin only)
-export const getConfig = async () => {
-  const res = await api.get("/dashboard/config");
+export const getConfig = async (token: string) => {
+  const res = await api.get("/dashboard/config", { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};
+
+export const updateConfig = async (updates: Record<string, any>, token: string) => {
+  const res = await api.put("/dashboard/config", { updates }, { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};
+
+export const testConfigConnection = async (token: string) => {
+  const res = await api.post("/dashboard/config/test-connection", {}, { headers: { Authorization: `Bearer ${token}` } });
   return res.data;
 };
 
