@@ -15,17 +15,11 @@ import {
   Cell,
 } from "recharts";
 import { Activity, TrendingUp, AlertTriangle, Clock } from "lucide-react";
+import { calcPercent, safeNumber } from "@/utils/number";
+import { RpcUsageResponse } from "@/utils/api";
 
 interface RpcGraphProps {
-  rpcData?: {
-    calls_today: number;
-    errors: number;
-    latency_avg_ms: number;
-    quota: string;
-    daily_calls?: Array<{ hour: string; calls: number }>;
-    methods?: Array<{ method: string; count: number }>;
-    latency_distribution?: Array<{ range: string; count: number; color: string }>;
-  };
+  rpcData?: RpcUsageResponse;
 }
 
 const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
@@ -58,36 +52,43 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
   };
 
   const data = rpcData || mockData;
-  const errorRate = ((data.errors / data.calls_today) * 100).toFixed(1);
-  const quotaUsed = parseInt(data.quota.split("/")[0]);
-  const quotaTotal = parseInt(data.quota.split("/")[1]);
-  const quotaPercentage = Math.min(100, (data.calls_today / quotaTotal) * 100);
+  const callsToday = safeNumber(data.calls_today);
+  const errors = safeNumber(data.errors);
+  const latencyAvgMs = safeNumber(data.latency_avg_ms);
+
+  const parsedQuotaParts = typeof data.quota === "string" ? data.quota.split("/") : [];
+  const quotaUsed = safeNumber(data.quota_used ?? parsedQuotaParts[0]);
+  const quotaLimit = safeNumber(data.quota_limit ?? parsedQuotaParts[1]);
+  const errorRate = calcPercent(errors, callsToday);
+  const quotaPercentage = Math.min(100, calcPercent(quotaUsed || callsToday, quotaLimit));
+  const isQuotaPending = quotaLimit <= 0;
+  const quotaUsedText = isQuotaPending ? "--" : `${Math.round(quotaUsed || callsToday)}/${Math.round(quotaLimit)}`;
 
   const stats = [
     {
       label: "Total Calls",
-      value: data.calls_today.toString(),
+      value: callsToday.toString(),
       icon: <Activity className="text-blue-600" size={20} />,
       color: "bg-blue-50",
       textColor: "text-blue-700",
     },
     {
       label: "Error Rate",
-      value: `${errorRate}%`,
+      value: `${errorRate.toFixed(1)}%`,
       icon: <AlertTriangle className="text-red-600" size={20} />,
       color: "bg-red-50",
       textColor: "text-red-700",
     },
     {
       label: "Avg Latency",
-      value: `${data.latency_avg_ms}ms`,
+      value: `${latencyAvgMs}ms`,
       icon: <Clock className="text-green-600" size={20} />,
       color: "bg-green-50",
       textColor: "text-green-700",
     },
     {
       label: "Quota Used",
-      value: `${data.calls_today}/${quotaTotal}`,
+      value: quotaUsedText,
       icon: <TrendingUp className="text-purple-600" size={20} />,
       color: "bg-purple-50",
       textColor: "text-purple-700",
@@ -134,8 +135,8 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-gray-700">Daily Quota Usage</p>
-          <p className="text-sm text-gray-600">
-            {quotaPercentage.toFixed(1)}% used
+          <p className="text-sm text-gray-600" title={isQuotaPending ? "waiting for data" : undefined}>
+            {isQuotaPending ? "0% used" : `${quotaPercentage.toFixed(1)}% used`}
           </p>
         </div>
         <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
