@@ -16,11 +16,15 @@ import {
   CheckCircle
 } from "lucide-react";
 import { getRpcUsage, getTokenStatus, getContributors, getHealth } from "@/utils/api";
+import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
+import { RpcUsageResponse, TokenStatusResponse } from "@/utils/api";
 import { ActiveAlert, ackAlert, getActiveAlerts, snoozeAlert } from "@/utils/api";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState("overview");
+xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
+  const [tokenData, setTokenData] = useState<TokenStatusResponse | null>(null);
   const [mobileTab, setMobileTab] = useState<"overview" | "rpc" | "activity">("overview");
   const [rpcData, setRpcData] = useState<any>(null);
   const [tokenData, setTokenData] = useState<any>(null);
