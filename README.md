@@ -62,7 +62,7 @@ docker run -p 3000:3000 meechain-frontend
 |-------------|--------------------------|------------------------|---------------------|-------|
 | Local (Ubuntu/Mac/Win) | `docker ps` | Linux: `sudo systemctl start docker` / Mac+Win: Start Docker Desktop | `docker build` / `docker run` | 🥉 Bronze |
 | Termux (Android) | `docker ps` (ผ่าน `proot`) | ใช้ Podman rootless | `podman run` | 🥈 Silver |
-| Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm start` / `python main.py` | 🥇 Gold |
+| Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm run dev` / `uvicorn main:app --reload --port 8000` (see [Quick Start](#-quick-start)) | 🥇 Gold |
 
 ### 🎖 Achievement Flow
 - **Bronze** → Local setup สำเร็จ
