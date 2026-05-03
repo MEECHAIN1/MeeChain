@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     # ── Logging ──────────────────────────────────────────────────────────
     max_log_entries: int = 1000
 
+    # ── Alerting thresholds ───────────────────────────────────────────────
+    alert_error_rate_threshold: float = 0.05
+    alert_p95_latency_threshold_ms: float = 1000
+    alert_quota_remaining_threshold: int = 100
+    alert_check_interval_seconds: int = 60
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

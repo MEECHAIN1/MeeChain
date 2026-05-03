@@ -1,132 +1,88 @@
-"""
-MeeChain Backend – dashboard/routes.py
-Dashboard endpoints: contributor overview, admin stats, audit logs.
-"""
-
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-from fastapi.responses import JSONResponse
-import redis.asyncio as redis
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from alerts import ack_alert, get_active_alerts, run_alert_check, snooze_alert
 from auth import get_current_user, require_scopes
-from badges import check_and_award_badges, get_badge_list, get_user_badges
 from badges import check_and_award_badges, get_badge_list
 from config import Settings, get_settings
 from logger import activity_logger
-from database import get_redis_client
-from logger import ActivityLogger, get_activity_logger
 from models import ContributorStats
 from rpc import get_global_rpc_stats, get_quota_info, get_rpc_stats
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-# ── Contributor self-service ──────────────────────────────────────────────────
-
 @router.get("/me/stats")
-async def my_stats(
-    payload: dict = Depends(get_current_user),
-    settings: Settings = Depends(get_settings),
-    redis_client: redis.Redis = Depends(get_redis_client),
-    activity_logger: ActivityLogger = Depends(get_activity_logger),
-):
-    """Return the caller's own RPC stats, quota, and badges."""
-    user_id: str = payload["sub"]
-    rpc = get_rpc_stats(user_id)
-    quota = get_quota_info(user_id, settings)
-    badges = get_badge_list(user_id)
-    logs = activity_logger.get_by_user(user_id, limit=20)
-    rpc = await get_rpc_stats(user_id, redis_client)
-    quota = await get_quota_info(user_id, settings, redis_client)
-    badges = await get_badge_list(user_id, redis_client)
-    logs = await activity_logger.get_by_user(user_id, limit=20)
-
+async def my_stats(payload: dict = Depends(get_current_user), settings: Settings = Depends(get_settings)):
+    user_id = payload["sub"]
     return {
         "user_id": user_id,
-        "rpc_stats": rpc,
-        "quota": quota,
-        "badges": badges,
-        "recent_activity": logs,
+        "rpc_stats": get_rpc_stats(user_id),
+        "quota": get_quota_info(user_id, settings),
+        "badges": get_badge_list(user_id),
+        "recent_activity": activity_logger.get_by_user(user_id, limit=20),
     }
 
 
-@router.get("/me/badges")
-async def my_badges(payload: dict = Depends(get_current_user)):
-async def my_badges(
-    payload: dict = Depends(get_current_user),
-    redis_client: redis.Redis = Depends(get_redis_client),
-):
-    user_id: str = payload["sub"]
-    return {"user_id": user_id, "badges": get_badge_list(user_id)}
-    return {"user_id": user_id, "badges": await get_badge_list(user_id, redis_client)}
+@router.get("/active-alerts", dependencies=[Depends(require_scopes("read:users"))])
+async def active_alerts():
+    return {"alerts": get_active_alerts()}
 
 
-@router.post("/me/badges/check")
-async def check_my_badges(
-    stats: ContributorStats,
-    payload: dict = Depends(get_current_user),
-):
-    """
-    Submit stats and receive newly awarded badges.
-    The client should call this after significant milestones.
-    """
-    user_id: str = payload["sub"]
-    stats.user_id = user_id
-    newly_awarded = check_and_award_badges(user_id, stats)
-    # This endpoint requires a redis client to be passed to the badge logic
-    redis_client: redis.Redis = await get_redis_client(Depends(get_redis_pool))
-    newly_awarded = await check_and_award_badges(user_id, stats, redis_client)
-    return {
-        "user_id": user_id,
-        "newly_awarded": [b.value for b in newly_awarded],
-        "all_badges": get_badge_list(user_id),
-        "all_badges": await get_badge_list(user_id, redis_client),
+@router.post("/admin/alerts/run-check", dependencies=[Depends(require_scopes("read:users"))])
+async def run_check(settings: Settings = Depends(get_settings)):
+    snapshot = {
+        "error_rate": 0.07,
+        "p95_latency_ms": 1800,
+        "quota_remaining": 80,
     }
+    return run_alert_check(snapshot=snapshot, settings=settings)
 
 
-@router.get("/me/quota")
-async def my_quota(
+@router.post("/admin/alerts/{alert_id}/ack", dependencies=[Depends(require_scopes("write:users"))])
+async def acknowledge_alert(alert_id: str, payload: dict = Depends(get_current_user)):
+    updated = ack_alert(alert_id, payload["sub"])
+    if not updated:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return {"alert": updated}
+
+
+@router.post("/admin/alerts/{alert_id}/snooze", dependencies=[Depends(require_scopes("write:users"))])
+async def snooze_alert_endpoint(
+    alert_id: str,
+    minutes: int = Query(30, ge=1, le=1440),
     payload: dict = Depends(get_current_user),
-    settings: Settings = Depends(get_settings),
-    redis_client: redis.Redis = Depends(get_redis_client),
 ):
-    user_id: str = payload["sub"]
-    return get_quota_info(user_id, settings)
-    return await get_quota_info(user_id, settings, redis_client)
+    updated = snooze_alert(alert_id, minutes, payload["sub"])
+    if not updated:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return {"alert": updated}
 
-
-# ── Admin endpoints ────────────────────────────────────────────────────────────
 
 @router.get("/admin/stats", dependencies=[Depends(require_scopes("read:users"))])
 async def admin_stats():
-async def admin_stats(redis_client: redis.Redis = Depends(get_redis_client)):
-    """Global RPC statistics. Requires read:users permission."""
     return get_global_rpc_stats()
-    return await get_global_rpc_stats(redis_client)
 
 
 @router.get("/admin/logs", dependencies=[Depends(require_scopes("read:users"))])
-async def admin_logs(
-    limit: int = Query(100, ge=1, le=1000),
-    level: str = Query(None),
-    activity_logger: ActivityLogger = Depends(get_activity_logger),
-):
-    """Audit log. Requires read:users permission."""
-    if level:
-        entries = activity_logger.get_by_level(level.upper(), limit=limit)
-        entries = await activity_logger.get_by_level(level.upper(), limit=limit)
-    else:
-        entries = activity_logger.get_all(limit=limit)
-    summary = activity_logger.summary()
-        entries = await activity_logger.get_all(limit=limit)
-    summary = await activity_logger.summary()
-    return {"summary": summary, "entries": entries}
+async def admin_logs(limit: int = Query(100, ge=1, le=1000), level: str | None = Query(None)):
+    entries = activity_logger.get_by_level(level.upper(), limit=limit) if level else activity_logger.get_all(limit=limit)
+    return {"summary": activity_logger.summary(), "entries": entries}
 
 
 @router.get("/admin/badges/all", dependencies=[Depends(require_scopes("read:users"))])
 async def admin_all_badges():
-async def admin_all_badges(redis_client: redis.Redis = Depends(get_redis_client)):
-    """List all badge definitions (no user context)."""
     return {"badges": get_badge_list()}
-    return {"badges": await get_badge_list(redis_client=redis_client)}
+
+
+@router.post("/me/badges/check")
+async def check_my_badges(stats: ContributorStats, payload: dict = Depends(get_current_user)):
+    user_id = payload["sub"]
+    stats.user_id = user_id
+    newly_awarded = check_and_award_badges(user_id, stats)
+    return {
+        "user_id": user_id,
+        "newly_awarded": [b.value for b in newly_awarded],
+        "all_badges": get_badge_list(user_id),
+    }
