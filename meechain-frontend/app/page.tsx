@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import TokenStatus from "@/components/TokenStatus";
 import RpcGraph from "@/components/RpcGraph";
-import ContributorCard from "@/components/ContributorCard";
 import { 
   Activity, 
   Users, 
@@ -15,7 +14,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
-import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
+import { ActiveAlert, ackAlert, getActiveAlerts, snoozeAlert } from "@/utils/api";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,6 +23,7 @@ export default function Home() {
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<ActiveAlert[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,6 +80,8 @@ export default function Home() {
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
+        const alertData = await getActiveAlerts().catch(() => []);
+        setAlerts(alertData);
       } finally {
         setLoading(false);
       }
@@ -119,6 +121,23 @@ export default function Home() {
     },
   ];
 
+
+  const severityStyles: Record<string, string> = {
+    info: "bg-blue-50 border-blue-200 text-blue-800",
+    warn: "bg-yellow-50 border-yellow-200 text-yellow-800",
+    critical: "bg-red-50 border-red-200 text-red-800",
+  };
+
+  const handleAck = async (alertId: string) => {
+    await ackAlert(alertId);
+    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+  };
+
+  const handleSnooze = async (alertId: string) => {
+    await snoozeAlert(alertId, 30);
+    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -156,6 +175,27 @@ export default function Home() {
             <p className="text-gray-600">Welcome to MeeChain Backend Dashboard</p>
           </div>
           
+          {/* Active Alerts */}
+          {alerts.length > 0 && (
+            <div className="mb-6 space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert.id} className={`border rounded-xl p-4 ${severityStyles[alert.severity] || severityStyles.info}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-semibold uppercase text-xs">{alert.severity}</p>
+                      <p className="font-medium">{alert.message}</p>
+                      <p className="text-xs mt-1">Metric: {alert.metric} • Created: {new Date(alert.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAck(alert.id)} className="px-3 py-1 text-xs rounded-md bg-white/80 border border-current">Ack</button>
+                      <button onClick={() => handleSnooze(alert.id)} className="px-3 py-1 text-xs rounded-md bg-white/80 border border-current">Snooze 30m</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
