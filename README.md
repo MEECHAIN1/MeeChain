@@ -53,6 +53,39 @@ docker build -t meechain-frontend ./meechain-frontend
 docker run -p 3000:3000 meechain-frontend
 ```
 
+## 🛠 Docker / Replit Ritual Checklist
+
+> ⚠️ Replit environment does **not** support `systemd`, so Docker daemon/service startup commands are unavailable there.  
+> Use Nix-managed runtime commands directly instead (`npm start`, `python main.py`, etc.).
+
+| Environment | Step 1: ตรวจสอบ daemon | Step 2: Start service | Step 3: Run project | Badge |
+|-------------|--------------------------|------------------------|---------------------|-------|
+| Local (Ubuntu/Mac/Win) | `docker ps` | `sudo systemctl start docker` | `docker build` / `docker run` | 🥉 Bronze |
+| Termux (Android) | `docker ps` (ผ่าน `proot`) | ใช้ Podman rootless | `podman run` | 🥈 Silver |
+| Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm start` / `python main.py` | 🥇 Gold |
+
+### 🎖 Achievement Flow
+- **Bronze** → Local setup สำเร็จ
+- **Silver** → Podman บน Termux สำเร็จ
+- **Gold** → Replit workaround สำเร็จ
+
+## 🧭 Node.js Config + OpenAI Ritual Flow
+
+```mermaid
+flowchart TD
+    A[📂 .env.example scaffold] --> B[🔑 Config Keys: MEECHAINAPIKEY, BASE_URL]
+    B --> C[🛠 RPC Config Verification (scripts/rpc-check.sh)]
+    C --> D[🌐 Web3 Connection Test]
+    D --> E[🤖 OpenAI Integration]
+    E --> F[🎖 Badge Overlay Ritual]
+
+    subgraph Achievement Flow
+        F --> G[🥉 Bronze: Local Docker OK]
+        F --> H[🥈 Silver: Podman Termux OK]
+        F --> I[🥇 Gold: Replit Nix OK]
+    end
+```
+
 ## 📁 Project Structure
 
 ```
