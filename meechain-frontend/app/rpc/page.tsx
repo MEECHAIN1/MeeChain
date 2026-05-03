@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import RpcGraph from "@/components/RpcGraph";
@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Play
 } from "lucide-react";
-import { getRpcUsage, postRpcCall } from "@/utils/api";
+import { fetchWithRetry, getMetricsAndLogs, getRpcUsage, postRpcCall } from "@/utils/api";
 
 export default function RpcPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,50 +25,63 @@ export default function RpcPage() {
   const [rpcParams, setRpcParams] = useState("[]");
   const [rpcResult, setRpcResult] = useState<any>(null);
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [stale, setStale] = useState(false);
+
+  const pollIntervalMs = 20000;
 
   useEffect(() => {
+    let isMounted = true;
+    let pollingId: NodeJS.Timeout;
+    let staleId: NodeJS.Timeout;
+    let debounceId: NodeJS.Timeout;
+
     const fetchData = async () => {
       try {
-        // In production, use real API
-        // const response = await getRpcUsage();
-        
-        // For demo, use mock data
-        setRpcData({
-          calls_today: 42,
-          errors: 2,
-          latency_avg_ms: 120,
-          quota: "100/day",
-          daily_calls: [
-            { hour: "00:00", calls: 2 },
-            { hour: "04:00", calls: 1 },
-            { hour: "08:00", calls: 8 },
-            { hour: "12:00", calls: 15 },
-            { hour: "16:00", calls: 10 },
-            { hour: "20:00", calls: 6 },
-          ],
-          methods: [
-            { method: "eth_blockNumber", count: 15 },
-            { method: "eth_getBalance", count: 10 },
-            { method: "eth_call", count: 8 },
-            { method: "eth_getTransactionReceipt", count: 5 },
-            { method: "eth_sendRawTransaction", count: 4 },
-          ],
-          latency_distribution: [
-            { range: "<100ms", count: 25, color: "#10B981" },
-            { range: "100-500ms", count: 12, color: "#3B82F6" },
-            { range: "500-1000ms", count: 3, color: "#F59E0B" },
-            { range: ">1000ms", count: 2, color: "#EF4444" },
-          ],
-        });
-      } catch (error) {
-        console.error("Error fetching RPC data:", error);
+        const [{ rpcUsage }] = await Promise.all([
+          fetchWithRetry(() => getMetricsAndLogs()),
+          fetchWithRetry(() => getRpcUsage()),
+        ]);
+
+        if (!isMounted) return;
+        setRpcData(rpcUsage);
+        setLastUpdated(new Date());
+        setStale(false);
+        setError(null);
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch RPC data");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    pollingId = setInterval(() => {
+      clearTimeout(debounceId);
+      debounceId = setTimeout(fetchData, 350);
+    }, pollIntervalMs);
+
+    staleId = setInterval(() => {
+      if (!isMounted || !lastUpdated) return;
+      setStale(Date.now() - lastUpdated.getTime() > pollIntervalMs * 2);
+    }, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollingId);
+      clearInterval(staleId);
+      clearTimeout(debounceId);
+    };
+  }, [lastUpdated]);
+
+  const statusLabel = useMemo(() => {
+    if (loading) return "Loading";
+    if (error) return "Error";
+    if (stale) return "Stale";
+    return "Live";
+  }, [loading, error, stale]);
 
   const handleSendRpc = async () => {
     setIsSending(true);
@@ -165,6 +178,7 @@ export default function RpcPage() {
                 <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2">
                   <RefreshCw size={16} />
                   <span>Refresh Data</span>
+                {lastUpdated && <span className="text-xs text-gray-500 ml-2">{lastUpdated.toLocaleTimeString()}</span>}
                 </button>
               </div>
             </div>
@@ -188,6 +202,10 @@ export default function RpcPage() {
                     <h3 className="text-lg font-semibold text-gray-800">RPC Call Tester</h3>
                     <p className="text-sm text-gray-600">Test RPC methods directly</p>
                   </div>
+                </div>
+                <div className="text-sm">
+                  Status: <span className={error ? "text-red-600" : stale ? "text-yellow-600" : "text-green-600"}>{statusLabel}</span>
+                  {error && <span className="ml-2 text-red-600">{error}</span>}
                 </div>
               </div>
               

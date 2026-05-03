@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import TokenStatus from "@/components/TokenStatus";
@@ -15,7 +15,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
-import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
+import { fetchWithRetry, getRpcUsage, getTokenStatus, getContributors, getLogs } from "@/utils/api";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,69 +24,67 @@ export default function Home() {
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [stale, setStale] = useState(false);
+
+  const pollIntervalMs = 15000;
 
   useEffect(() => {
+    let isMounted = true;
+    let pollingId: NodeJS.Timeout;
+    let staleId: NodeJS.Timeout;
+    let debounceId: NodeJS.Timeout;
+
     const fetchData = async () => {
       try {
-        // In production, use real API
-        // const rpcResponse = await getRpcUsage();
-        // const tokenResponse = await getTokenStatus();
-        // const contributorsResponse = await getContributors();
-        
-        // For demo, use mock data
-        setRpcData({
-          calls_today: 42,
-          errors: 2,
-          latency_avg_ms: 120,
-          quota: "100/day",
-        });
-        
-        setTokenData({
-          status: "VALID",
-          user: "admin@meechain.io",
-          audience: "MeeChain API",
-          scope: "read:rpc write:badges admin:logs",
-          expires_in: 3600,
-        });
-        
-        setContributors([
-          { 
-            name: "Alice Chen", 
-            role: "Developer", 
-            badges: ["JWT Guardian", "Onboarding Hero"], 
-            activity: "42 RPC calls today",
-            rpcCalls: 42,
-            errorRate: 2.4,
-            joinedDate: "2026-03-01"
-          },
-          { 
-            name: "Bob Smith", 
-            role: "Contributor", 
-            badges: ["NodeReal Explorer", "RPC Ranger", "Community Builder"], 
-            activity: "58 RPC calls today",
-            rpcCalls: 58,
-            errorRate: 1.7,
-            joinedDate: "2026-03-05"
-          },
-          { 
-            name: "Carol Johnson", 
-            role: "Admin", 
-            badges: ["Auth0 Master", "Config Keeper", "Bug Hunter"], 
-            activity: "120 RPC calls today",
-            rpcCalls: 120,
-            errorRate: 0.8,
-            joinedDate: "2026-02-28"
-          },
+        const [rpcResponse, tokenResponse, contributorsResponse] = await Promise.all([
+          fetchWithRetry(() => getRpcUsage()),
+          fetchWithRetry(() => getTokenStatus()),
+          fetchWithRetry(() => getContributors()),
         ]);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        await fetchWithRetry(() => getLogs());
+
+        if (!isMounted) return;
+        setRpcData(rpcResponse);
+        setTokenData(tokenResponse);
+        setContributors(Array.isArray(contributorsResponse) ? contributorsResponse : []);
+        setLastUpdated(new Date());
+        setStale(false);
+        setError(null);
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    pollingId = setInterval(() => {
+      clearTimeout(debounceId);
+      debounceId = setTimeout(fetchData, 350);
+    }, pollIntervalMs);
+
+    staleId = setInterval(() => {
+      if (!isMounted || !lastUpdated) return;
+      setStale(Date.now() - lastUpdated.getTime() > pollIntervalMs * 2);
+    }, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollingId);
+      clearInterval(staleId);
+      clearTimeout(debounceId);
+    };
+  }, [lastUpdated]);
+
+  const statusLabel = useMemo(() => {
+    if (loading) return "Loading";
+    if (error) return "Error";
+    if (stale) return "Stale";
+    return "Live";
+  }, [loading, error, stale]);
 
   const stats = [
     {
@@ -154,6 +152,11 @@ export default function Home() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
             <p className="text-gray-600">Welcome to MeeChain Backend Dashboard</p>
+            <div className="mt-2 text-sm text-gray-500">
+              Status: <span className={error ? "text-red-600" : stale ? "text-yellow-600" : "text-green-600"}>{statusLabel}</span>
+              {lastUpdated && <span className="ml-3">Last updated: {lastUpdated.toLocaleTimeString()}</span>}
+              {error && <span className="ml-3 text-red-600">{error}</span>}
+            </div>
           </div>
           
           {/* Stats Grid */}
