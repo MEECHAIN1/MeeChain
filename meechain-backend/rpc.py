@@ -165,8 +165,7 @@ async def proxy_rpc(
                     )
                     if resp.status_code == 200:
                         _upstream_stats[provider_name]["ok"] += 1
-                        if idx > 0:
-                            _provider_state["active"] = provider_name
+                        _provider_state["active"] = provider_name
                         break
                     _upstream_stats[provider_name]["err"] += 1
                     if idx < len(providers)-1:
