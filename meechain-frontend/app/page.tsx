@@ -6,6 +6,16 @@ import Sidebar from "@/components/Sidebar";
 import TokenStatus from "@/components/TokenStatus";
 import RpcGraph from "@/components/RpcGraph";
 import { Activity, Users, Shield, BarChart3, Clock, CheckCircle, TrendingUp } from "lucide-react";
+import { 
+  Activity, 
+  Users, 
+  Shield, 
+  TrendingUp,
+  BarChart3,
+  Clock,
+  CheckCircle
+} from "lucide-react";
+import { ActiveAlert, ackAlert, getActiveAlerts, snoozeAlert } from "@/utils/api";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,6 +25,7 @@ export default function Home() {
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<ActiveAlert[]>([]);
 
   const compactNumber = (value: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 
@@ -30,6 +41,8 @@ export default function Home() {
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
+        const alertData = await getActiveAlerts().catch(() => []);
+        setAlerts(alertData);
       } finally {
         setLoading(false);
       }
@@ -44,6 +57,23 @@ export default function Home() {
     { label: "Badges Awarded", value: 156, change: "+12 this month", icon: <Shield className="text-purple-600" size={20} />, color: "bg-purple-50" },
     { label: "Avg Latency", value: 120, change: "-15ms from last week", icon: <Clock className="text-yellow-600" size={20} />, color: "bg-yellow-50", isLatency: true },
   ];
+
+
+  const severityStyles: Record<string, string> = {
+    info: "bg-blue-50 border-blue-200 text-blue-800",
+    warn: "bg-yellow-50 border-yellow-200 text-yellow-800",
+    critical: "bg-red-50 border-red-200 text-red-800",
+  };
+
+  const handleAck = async (alertId: string) => {
+    await ackAlert(alertId);
+    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+  };
+
+  const handleSnooze = async (alertId: string) => {
+    await snoozeAlert(alertId, 30);
+    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+  };
 
   if (loading) {
     return (
@@ -71,6 +101,30 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          
+          {/* Active Alerts */}
+          {alerts.length > 0 && (
+            <div className="mb-6 space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert.id} className={`border rounded-xl p-4 ${severityStyles[alert.severity] || severityStyles.info}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-semibold uppercase text-xs">{alert.severity}</p>
+                      <p className="font-medium">{alert.message}</p>
+                      <p className="text-xs mt-1">Metric: {alert.metric} • Created: {new Date(alert.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAck(alert.id)} className="px-3 py-1 text-xs rounded-md bg-white/80 border border-current">Ack</button>
+                      <button onClick={() => handleSnooze(alert.id)} className="px-3 py-1 text-xs rounded-md bg-white/80 border border-current">Snooze 30m</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
               <div key={index} className={`${stat.color} p-3 sm:p-5 rounded-xl border border-gray-100`}>
                 <div className="flex items-center justify-between">
