@@ -60,7 +60,7 @@ docker run -p 3000:3000 meechain-frontend
 
 | Environment | Step 1: ตรวจสอบ daemon | Step 2: Start service | Step 3: Run project | Badge |
 |-------------|--------------------------|------------------------|---------------------|-------|
-| Local (Ubuntu/Mac/Win) | `docker ps` | `sudo systemctl start docker` | `docker build` / `docker run` | 🥉 Bronze |
+| Local (Ubuntu/Mac/Win) | `docker ps` | Linux: `sudo systemctl start docker` / Mac+Win: Start Docker Desktop | `docker build` / `docker run` | 🥉 Bronze |
 | Termux (Android) | `docker ps` (ผ่าน `proot`) | ใช้ Podman rootless | `podman run` | 🥈 Silver |
 | Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm start` / `python main.py` | 🥇 Gold |
 
