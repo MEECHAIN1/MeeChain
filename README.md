@@ -73,7 +73,7 @@ docker run -p 3000:3000 meechain-frontend
 
 ```mermaid
 flowchart TD
-    A[📂 .env.example scaffold] --> B[🔑 Config Keys: MEECHAINAPIKEY, BASE_URL]
+    A[📂 .env.example scaffold] --> B[🔑 Config Keys: NODEREAL_API_KEY, NEXT_PUBLIC_API_URL]
     B --> C[🛠 RPC Config Verification (scripts/rpc-check.sh)]
     C --> D[🌐 Web3 Connection Test]
     D --> E[🤖 OpenAI Integration]
