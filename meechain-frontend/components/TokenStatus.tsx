@@ -1,5 +1,7 @@
 import React from "react";
 import { Key, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { TokenStatusResponse } from "@/utils/api";
+import { safeNumber } from "@/utils/number";
 
 interface TokenStatusProps {
   tokenData?: {
@@ -8,7 +10,15 @@ interface TokenStatusProps {
     audience: string;
     scope: string;
     expires_in?: number;
+    provider?: {
+      active_provider: string;
+      failover_count: number;
+      last_switch_time?: string;
+      status?: string;
+      endpoints?: Array<{provider: string; endpoint: string; cluster?: string}>;
+    };
   };
+  tokenData?: TokenStatusResponse;
 }
 
 const TokenStatus: React.FC<TokenStatusProps> = ({ tokenData }) => {
@@ -89,25 +99,38 @@ const TokenStatus: React.FC<TokenStatusProps> = ({ tokenData }) => {
           </div>
         </div>
 
-        {data.expires_in && (
+        {safeNumber(data.expires_in, 0) > 0 && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Expires In</p>
-                <p className="font-medium text-gray-800">{formatTime(data.expires_in)}</p>
+                <p className="font-medium text-gray-800">{formatTime(safeNumber(data.expires_in, 0))}</p>
               </div>
               <div className="w-32">
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div 
                     className={`h-full ${
-                      data.expires_in > 1800 ? "bg-green-500" : 
-                      data.expires_in > 600 ? "bg-yellow-500" : "bg-red-500"
+                      safeNumber(data.expires_in, 0) > 1800 ? "bg-green-500" : 
+                      safeNumber(data.expires_in, 0) > 600 ? "bg-yellow-500" : "bg-red-500"
                     }`}
-                    style={{ width: `${Math.min(100, (data.expires_in / 3600) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (safeNumber(data.expires_in, 0) / 3600) * 100)}%` }}
                   ></div>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {data.provider && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500 mb-2">Active Provider</p>
+            <p className="font-medium text-gray-800">{data.provider.active_provider}</p>
+            <p className="text-sm text-gray-600 mt-1">Failovers: {data.provider.failover_count} · Last Switch: {data.provider.last_switch_time ? new Date(data.provider.last_switch_time).toLocaleString() : "-"}</p>
+            {data.provider.active_provider === "dshackle" && data.provider.endpoints?.length ? (
+              <div className="mt-2 text-xs text-gray-600">
+                {data.provider.endpoints.map((ep, i) => <div key={i}>{ep.provider}: {ep.endpoint} {ep.cluster ? `(${ep.cluster})` : ""}</div>)}
+              </div>
+            ) : null}
           </div>
         )}
 

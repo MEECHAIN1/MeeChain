@@ -9,6 +9,7 @@ MeeChain is a comprehensive platform for managing contributors, tracking RPC usa
 ### Backend (FastAPI)
 - **Authentication**: Auth0 JWT with RS256 verification
 - **RPC Proxy**: NodeReal BSC RPC with rate limiting & quotas
+- **Optional RPC Aggregator**: dshackle upstream for fault tolerance / load balancing
 - **Badge System**: 9 badge types with composite logic
 - **Dashboard**: Contributor stats, admin logs, system monitoring
 - **Security**: JWT validation, rate limiting, audit logging
@@ -60,6 +61,9 @@ docker run -p 3000:3000 meechain-frontend
 
 | Environment | Step 1: ตรวจสอบ daemon | Step 2: Start service | Step 3: Run project | Badge |
 |-------------|--------------------------|------------------------|---------------------|-------|
+| Local (Ubuntu/Mac/Win) | `docker ps` | `sudo systemctl start docker` | `docker build` / `docker run` | 🥉 Bronze |
+| Termux (Android) | `docker ps` (ผ่าน `proot`) | ใช้ Podman rootless | `podman run` | 🥈 Silver |
+| Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm start` / `python main.py` | 🥇 Gold |
 | Local (Ubuntu/Mac/Win) | `docker ps` | Linux: `sudo systemctl start docker` / Mac+Win: Start Docker Desktop | `docker build` / `docker run` | 🥉 Bronze |
 | Termux (Android) | `docker ps` (ผ่าน `proot`) | ใช้ Podman rootless | `podman run` | 🥈 Silver |
 | Replit (Nix) | ❌ ไม่มี daemon | ❌ `systemctl` ไม่รองรับ | ใช้ `npm run dev` / `uvicorn main:app --reload --port 8000` (see [Quick Start](#-quick-start)) | 🥇 Gold |
@@ -69,10 +73,19 @@ docker run -p 3000:3000 meechain-frontend
 - **Silver** → Podman บน Termux สำเร็จ
 - **Gold** → Replit workaround สำเร็จ
 
+### 🧯 Replit Quick Fix (จาก error ที่เจอบ่อย)
+- `apt-get install ...` ใช้ไม่ได้ใน Replit workspace (เช่น `python3-certbot-nginx`) เพราะเป็น Nix-based environment
+- `systemctl` และ Docker daemon ใช้ไม่ได้ใน Replit
+- ถ้าต้องเพิ่ม dependency ให้ใช้ **System Dependencies (Replit UI)** หรือแก้ที่ `.replit` / `replit.nix`
+- ให้รันโปรเจกต์แบบตรง ๆ:
+  - Backend: `python main.py` หรือ `uvicorn main:app --host 0.0.0.0 --port 8000`
+  - Frontend: `npm install && npm run dev`
+
 ## 🧭 Node.js Config + OpenAI Ritual Flow
 
 ```mermaid
 flowchart TD
+    A[📂 .env.example scaffold] --> B[🔑 Config Keys: MEECHAINAPIKEY, BASE_URL]
     A[📂 .env.example scaffold] --> B[🔑 Config Keys: NODEREAL_API_KEY, NEXT_PUBLIC_API_URL]
     B --> C[🛠 RPC Config Verification (scripts/rpc-check.sh)]
     C --> D[🌐 Web3 Connection Test]
@@ -84,6 +97,24 @@ flowchart TD
         F --> H[🥈 Silver: Podman Termux OK]
         F --> I[🥇 Gold: Replit Nix OK]
     end
+```
+
+## 🔌 Optional: Add dshackle as RPC Upstream
+
+ถ้าต้องการความทนทานของ RPC เพิ่ม (multi-upstream/failover) สามารถวาง dshackle ไว้หน้า provider ได้
+
+- Upstream project: https://github.com/drpcorg/dshackle/blob/master/README.adoc
+- แนวทางใน MeeChain:
+  1. รัน dshackle แยกเป็น service/container
+  2. ตั้ง upstream หลายตัวใน dshackle (เช่น NodeReal + backup RPC)
+  3. ชี้ backend ของ MeeChain ไปที่ dshackle endpoint แทน direct RPC
+  4. ทดสอบด้วย `POST /rpc` และเช็ค latency/error rate ก่อนใช้ production
+
+ตัวอย่าง env (แนวคิด):
+```env
+# MeeChain backend points to dshackle instead of direct provider
+RPC_BASE_URL=http://dshackle:8080
+RPC_PROVIDER=dshackle
 ```
 
 ## 📁 Project Structure

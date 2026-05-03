@@ -14,9 +14,10 @@ interface SidebarProps {
   isOpen: boolean;
   activePage: string;
   setActivePage: (page: string) => void;
+  systemStatus?: "healthy" | "degraded" | "down";
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, setActivePage }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, setActivePage, systemStatus = "healthy" }) => {
   const menuItems = [
     { id: "overview", label: "Overview", icon: <Home size={20} /> },
     { id: "contributors", label: "Contributors", icon: <Users size={20} /> },
@@ -74,8 +75,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, setActivePage }) 
           <div className="px-4">
             <p className="text-sm text-gray-400 mb-2">System Status</p>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm">All systems operational</span>
+              <div className={`w-2 h-2 rounded-full ${systemStatus === "healthy" ? "bg-green-500" : systemStatus === "degraded" ? "bg-yellow-500" : "bg-red-500"}`}></div>
+              <span className="text-sm capitalize">{systemStatus}</span>
             </div>
           </div>
         </div>

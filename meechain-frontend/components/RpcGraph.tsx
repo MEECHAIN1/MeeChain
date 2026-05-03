@@ -15,20 +15,15 @@ import {
   Cell,
 } from "recharts";
 import { Activity, TrendingUp, AlertTriangle, Clock } from "lucide-react";
+import { calcPercent, safeNumber } from "@/utils/number";
+import { RpcUsageResponse } from "@/utils/api";
 
 interface RpcGraphProps {
-  rpcData?: {
-    calls_today: number;
-    errors: number;
-    latency_avg_ms: number;
-    quota: string;
-    daily_calls?: Array<{ hour: string; calls: number }>;
-    methods?: Array<{ method: string; count: number }>;
-    latency_distribution?: Array<{ range: string; count: number; color: string }>;
-  };
+  rpcData?: RpcUsageResponse;
 }
 
 const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
+  const compactNumber = (value: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
   const mockData = {
     calls_today: 42,
     errors: 2,
@@ -58,36 +53,43 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
   };
 
   const data = rpcData || mockData;
-  const errorRate = ((data.errors / data.calls_today) * 100).toFixed(1);
-  const quotaUsed = parseInt(data.quota.split("/")[0]);
-  const quotaTotal = parseInt(data.quota.split("/")[1]);
-  const quotaPercentage = Math.min(100, (data.calls_today / quotaTotal) * 100);
+  const callsToday = safeNumber(data.calls_today);
+  const errors = safeNumber(data.errors);
+  const latencyAvgMs = safeNumber(data.latency_avg_ms);
+
+  const parsedQuotaParts = typeof data.quota === "string" ? data.quota.split("/") : [];
+  const quotaUsed = safeNumber(data.quota_used ?? parsedQuotaParts[0]);
+  const quotaLimit = safeNumber(data.quota_limit ?? parsedQuotaParts[1]);
+  const errorRate = calcPercent(errors, callsToday);
+  const quotaPercentage = Math.min(100, calcPercent(quotaUsed || callsToday, quotaLimit));
+  const isQuotaPending = quotaLimit <= 0;
+  const quotaUsedText = isQuotaPending ? "--" : `${Math.round(quotaUsed || callsToday)}/${Math.round(quotaLimit)}`;
 
   const stats = [
     {
       label: "Total Calls",
-      value: data.calls_today.toString(),
+      value: callsToday.toString(),
       icon: <Activity className="text-blue-600" size={20} />,
       color: "bg-blue-50",
       textColor: "text-blue-700",
     },
     {
       label: "Error Rate",
-      value: `${errorRate}%`,
+      value: `${errorRate.toFixed(1)}%`,
       icon: <AlertTriangle className="text-red-600" size={20} />,
       color: "bg-red-50",
       textColor: "text-red-700",
     },
     {
       label: "Avg Latency",
-      value: `${data.latency_avg_ms}ms`,
+      value: `${latencyAvgMs}ms`,
       icon: <Clock className="text-green-600" size={20} />,
       color: "bg-green-50",
       textColor: "text-green-700",
     },
     {
       label: "Quota Used",
-      value: `${data.calls_today}/${quotaTotal}`,
+      value: quotaUsedText,
       icon: <TrendingUp className="text-purple-600" size={20} />,
       color: "bg-purple-50",
       textColor: "text-purple-700",
@@ -95,31 +97,31 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <Activity className="text-blue-600" size={24} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">RPC Usage Analytics</h3>
-            <p className="text-sm text-gray-600">Real-time RPC call statistics</p>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">RPC Usage Analytics</h3>
+            <p className="text-xs sm:text-xs sm:text-sm text-gray-600">Real-time RPC call statistics</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className={`${stat.color} p-4 rounded-lg border border-gray-100`}
+            className={`${stat.color} p-3 sm:p-4 rounded-lg border border-gray-100`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.textColor} mt-1`}>
-                  {stat.value}
+                <p className="text-xs sm:text-sm text-gray-600">{stat.label}</p>
+                <p className={`text-lg sm:text-2xl font-bold ${stat.textColor} mt-1`}>
+                  <span className="sm:hidden">{stat.label === "Avg Latency" ? `${compactNumber(data.latency_avg_ms)}ms` : stat.label === "Total Calls" ? compactNumber(data.calls_today) : stat.label === "Quota Used" ? `${compactNumber(data.calls_today)}/${quotaTotal}` : stat.value}</span><span className="hidden sm:inline">{stat.value}</span>
                 </p>
               </div>
               <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -134,7 +136,9 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-gray-700">Daily Quota Usage</p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600" title={isQuotaPending ? "waiting for data" : undefined}>
+            {isQuotaPending ? "0% used" : `${quotaPercentage.toFixed(1)}% used`}
+          <p className="text-xs sm:text-sm text-gray-600">
             {quotaPercentage.toFixed(1)}% used
           </p>
         </div>
@@ -159,7 +163,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Calls by Hour (Today)
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data?.daily_calls || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -191,7 +195,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Method Distribution
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.methods || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -215,7 +219,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Latency Distribution
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # ── NodeReal RPC ─────────────────────────────────────────────────────
     nodereal_api_key: str
     nodereal_rpc_url: str = "https://bsc-mainnet.nodereal.io/v1/"
+    provider_mode: str = "direct"  # direct | dshackle
+    dshackle_rpc_url: str = ""
+    dshackle_cluster_name: str = ""
 
     # ── App ──────────────────────────────────────────────────────────────
     app_secret_key: str
@@ -32,6 +35,12 @@ class Settings(BaseSettings):
 
     # ── Logging ──────────────────────────────────────────────────────────
     max_log_entries: int = 1000
+
+    # ── Alerting thresholds ───────────────────────────────────────────────
+    alert_error_rate_threshold: float = 0.05
+    alert_p95_latency_threshold_ms: float = 1000
+    alert_quota_remaining_threshold: int = 100
+    alert_check_interval_seconds: int = 60
 
     model_config = SettingsConfigDict(
         env_file=".env",
