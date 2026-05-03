@@ -86,7 +86,7 @@ def run_alert_check(snapshot: dict, settings: Settings) -> dict:
 
 
 def get_active_alerts() -> list[dict]:
-    return [asdict(a) for a in _alert_events if a.status == "active" or _is_snoozed(a) is False and a.status == "snoozed"]
+    return [asdict(a) for a in _alert_events if a.status == "active" or (not _is_snoozed(a) and a.status == "snoozed")]
 
 
 def ack_alert(alert_id: str, admin_user_id: str) -> dict | None:
