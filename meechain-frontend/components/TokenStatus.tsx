@@ -4,6 +4,20 @@ import { TokenStatusResponse } from "@/utils/api";
 import { safeNumber } from "@/utils/number";
 
 interface TokenStatusProps {
+  tokenData?: {
+    status: string;
+    user: string;
+    audience: string;
+    scope: string;
+    expires_in?: number;
+    provider?: {
+      active_provider: string;
+      failover_count: number;
+      last_switch_time?: string;
+      status?: string;
+      endpoints?: Array<{provider: string; endpoint: string; cluster?: string}>;
+    };
+  };
   tokenData?: TokenStatusResponse;
 }
 
@@ -104,6 +118,19 @@ const TokenStatus: React.FC<TokenStatusProps> = ({ tokenData }) => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {data.provider && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500 mb-2">Active Provider</p>
+            <p className="font-medium text-gray-800">{data.provider.active_provider}</p>
+            <p className="text-sm text-gray-600 mt-1">Failovers: {data.provider.failover_count} · Last Switch: {data.provider.last_switch_time ? new Date(data.provider.last_switch_time).toLocaleString() : "-"}</p>
+            {data.provider.active_provider === "dshackle" && data.provider.endpoints?.length ? (
+              <div className="mt-2 text-xs text-gray-600">
+                {data.provider.endpoints.map((ep, i) => <div key={i}>{ep.provider}: {ep.endpoint} {ep.cluster ? `(${ep.cluster})` : ""}</div>)}
+              </div>
+            ) : null}
           </div>
         )}
 

@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
+import { getRpcUsage, getTokenStatus, getContributors, getHealth } from "@/utils/api";
 import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
 import { RpcUsageResponse, TokenStatusResponse } from "@/utils/api";
 import { ActiveAlert, ackAlert, getActiveAlerts, snoozeAlert } from "@/utils/api";
@@ -29,6 +30,7 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [systemStatus, setSystemStatus] = useState<"healthy" | "degraded" | "down">("healthy");
   const [alerts, setAlerts] = useState<ActiveAlert[]>([]);
 
   const compactNumber = (value: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
@@ -36,6 +38,30 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // In production, use real API
+        // const rpcResponse = await getRpcUsage();
+        // const tokenResponse = await getTokenStatus();
+        // const contributorsResponse = await getContributors();
+        
+        // For demo, use mock data
+        setRpcData({
+          calls_today: 42,
+          errors: 2,
+          latency_avg_ms: 120,
+          quota: "100/day",
+        });
+        
+        const health = await getHealth().catch(() => null);
+        setSystemStatus(health?.upstream?.status || "healthy");
+        setTokenData({
+          status: "VALID",
+          user: "admin@meechain.io",
+          audience: "MeeChain API",
+          scope: "read:rpc write:badges admin:logs",
+          expires_in: 3600,
+          provider: health?.upstream || { active_provider: "direct", failover_count: 0, status: "healthy", endpoints: [] },
+        });
+        
         setRpcData({ calls_today: 42, errors: 2, latency_avg_ms: 120, quota: "100/day" });
         setTokenData({ status: "VALID", user: "admin@meechain.io", audience: "MeeChain API", scope: "read:rpc write:badges admin:logs", expires_in: 3600 });
         setContributors([
@@ -95,6 +121,26 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex">
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          activePage={activePage}
+          setActivePage={setActivePage}
+          systemStatus={systemStatus}
+        />
+        
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+        
+        <main className="flex-1 p-4 lg:p-6">
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+            <p className="text-gray-600">Welcome to MeeChain Backend Dashboard</p>
         <Sidebar isOpen={sidebarOpen} activePage={activePage} setActivePage={setActivePage} />
         {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
 

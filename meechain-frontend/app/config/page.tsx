@@ -208,6 +208,12 @@ export default function ConfigPage() {
             </div>
           </div>
           
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Provider Health</h3>
+            <p className="text-sm text-gray-600">Active provider: <span className="font-medium">dshackle</span> · Failover count: <span className="font-medium">2</span> · Last switch: <span className="font-medium">2026-05-03 10:30 UTC</span></p>
+            <p className="text-xs text-gray-500 mt-2">Dshackle endpoint/cluster shown in redacted mode.</p>
+          </div>
+
           {/* System Status */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">

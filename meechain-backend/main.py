@@ -17,7 +17,7 @@ from config import Settings, get_settings
 from dashboard.routes import router as dashboard_router
 from logger import activity_logger
 from models import HealthResponse, RPCRequest
-from rpc import proxy_rpc
+from rpc import get_upstream_health_summary, proxy_rpc
 
 APP_VERSION = "1.0.0"
 
@@ -79,11 +79,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         summary="Public health check",
     )
     async def health(s: Settings = Depends(get_settings)):
+        upstream = get_upstream_health_summary(s)
         return HealthResponse(
-            status="ok",
+            status=upstream["status"],
             version=APP_VERSION,
             auth0_domain=s.auth0_domain,
             rpc_url=s.nodereal_rpc_url,
+            provider_mode=s.provider_mode,
+            upstream=upstream,
         )
 
     # ── Identity ──────────────────────────────────────────────────────────────

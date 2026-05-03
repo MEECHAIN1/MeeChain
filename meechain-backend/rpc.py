@@ -27,6 +27,9 @@ _daily_quota: dict[str, dict[str, int]] = defaultdict(dict)
 # global stats
 _rpc_stats: dict[str, list[float]] = defaultdict(list)  # user_id -> [latency_ms, ...]
 
+_provider_state = {"active": "direct", "failover_count": 0, "last_switch_time": None, "last_error": None}
+_upstream_stats = {"direct": {"ok": 0, "err": 0}, "dshackle": {"ok": 0, "err": 0}}
+
 
 def _today_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -139,18 +142,45 @@ async def proxy_rpc(
     check_daily_quota(user_id, settings)
 
     start = time.perf_counter()
+    providers = [("direct", settings.nodereal_full_url)]
+    if settings.provider_mode == "dshackle" and settings.dshackle_rpc_url:
+        providers = [("dshackle", settings.dshackle_rpc_url), ("direct", settings.nodereal_full_url)]
+
+    resp = None
+    used_provider = providers[0][0]
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(
-                settings.nodereal_full_url,
-                json={
-                    "jsonrpc": rpc_req.jsonrpc,
-                    "method": rpc_req.method,
-                    "params": rpc_req.params,
-                    "id": rpc_req.id,
-                },
-                headers={"Content-Type": "application/json"},
-            )
+            for idx, (provider_name, endpoint) in enumerate(providers):
+                used_provider = provider_name
+                try:
+                    resp = await client.post(
+                        endpoint,
+                        json={
+                            "jsonrpc": rpc_req.jsonrpc,
+                            "method": rpc_req.method,
+                            "params": rpc_req.params,
+                            "id": rpc_req.id,
+                        },
+                        headers={"Content-Type": "application/json"},
+                    )
+                    if resp.status_code == 200:
+                        _upstream_stats[provider_name]["ok"] += 1
+                        _provider_state["active"] = provider_name
+                        break
+                    _upstream_stats[provider_name]["err"] += 1
+                    if idx < len(providers)-1:
+                        _provider_state["failover_count"] += 1
+                        _provider_state["last_switch_time"] = datetime.now(timezone.utc).isoformat()
+                        activity_logger.log(event="rpc_failover", user_id=user_id, detail={"from": provider_name, "to": providers[idx+1][0], "method": rpc_req.method}, level="WARNING")
+                        continue
+                except httpx.TimeoutException:
+                    _upstream_stats[provider_name]["err"] += 1
+                    if idx < len(providers)-1:
+                        _provider_state["failover_count"] += 1
+                        _provider_state["last_switch_time"] = datetime.now(timezone.utc).isoformat()
+                        activity_logger.log(event="rpc_failover", user_id=user_id, detail={"from": provider_name, "to": providers[idx+1][0], "reason": "timeout", "method": rpc_req.method}, level="WARNING")
+                        continue
+                    raise
     except httpx.TimeoutException:
         activity_logger.log(
             event="rpc_timeout",
@@ -187,6 +217,7 @@ async def proxy_rpc(
         detail={
             "method": rpc_req.method,
             "latency_ms": round(latency_ms, 2),
+            "provider": used_provider,
         },
     )
     return resp.json()
@@ -218,3 +249,14 @@ def get_global_rpc_stats() -> dict:
         "active_contributors": len(_rpc_stats),
         "avg_latency_ms": round(sum(all_latencies) / len(all_latencies), 2),
     }
+
+
+def get_upstream_health_summary(settings: Settings) -> dict:
+    endpoints = [
+        {"provider": "direct", "endpoint": "nodereal", "ok": _upstream_stats["direct"]["ok"], "err": _upstream_stats["direct"]["err"]}
+    ]
+    if settings.provider_mode == "dshackle":
+        endpoints.insert(0, {"provider": "dshackle", "endpoint": settings.dshackle_rpc_url[:32] + "..." if settings.dshackle_rpc_url else "", "cluster": settings.dshackle_cluster_name or "default", "ok": _upstream_stats["dshackle"]["ok"], "err": _upstream_stats["dshackle"]["err"]})
+    total_err = sum(v["err"] for v in _upstream_stats.values())
+    status = "healthy" if total_err == 0 else ("degraded" if _provider_state["failover_count"] < 5 else "down")
+    return {"status": status, "active_provider": _provider_state["active"], "failover_count": _provider_state["failover_count"], "last_switch_time": _provider_state["last_switch_time"], "endpoints": endpoints}
