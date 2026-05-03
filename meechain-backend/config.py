@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # ── NodeReal RPC ─────────────────────────────────────────────────────
     nodereal_api_key: str
     nodereal_rpc_url: str = "https://bsc-mainnet.nodereal.io/v1/"
+    provider_mode: str = "direct"  # direct | dshackle
+    dshackle_rpc_url: str = ""
+    dshackle_cluster_name: str = ""
 
     # ── App ──────────────────────────────────────────────────────────────
     app_secret_key: str

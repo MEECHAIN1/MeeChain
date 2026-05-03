@@ -15,7 +15,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
-import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
+import { getRpcUsage, getTokenStatus, getContributors, getHealth } from "@/utils/api";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,6 +24,7 @@ export default function Home() {
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [systemStatus, setSystemStatus] = useState<"healthy" | "degraded" | "down">("healthy");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,12 +42,15 @@ export default function Home() {
           quota: "100/day",
         });
         
+        const health = await getHealth().catch(() => null);
+        setSystemStatus(health?.upstream?.status || "healthy");
         setTokenData({
           status: "VALID",
           user: "admin@meechain.io",
           audience: "MeeChain API",
           scope: "read:rpc write:badges admin:logs",
           expires_in: 3600,
+          provider: health?.upstream || { active_provider: "direct", failover_count: 0, status: "healthy", endpoints: [] },
         });
         
         setContributors([
@@ -139,6 +143,7 @@ export default function Home() {
           isOpen={sidebarOpen} 
           activePage={activePage}
           setActivePage={setActivePage}
+          systemStatus={systemStatus}
         />
         
         {/* Overlay for mobile sidebar */}
