@@ -23,6 +23,7 @@ interface RpcGraphProps {
 }
 
 const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
+  const compactNumber = (value: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
   const mockData = {
     calls_today: 42,
     errors: 2,
@@ -96,31 +97,31 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <Activity className="text-blue-600" size={24} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">RPC Usage Analytics</h3>
-            <p className="text-sm text-gray-600">Real-time RPC call statistics</p>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">RPC Usage Analytics</h3>
+            <p className="text-xs sm:text-xs sm:text-sm text-gray-600">Real-time RPC call statistics</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className={`${stat.color} p-4 rounded-lg border border-gray-100`}
+            className={`${stat.color} p-3 sm:p-4 rounded-lg border border-gray-100`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.textColor} mt-1`}>
-                  {stat.value}
+                <p className="text-xs sm:text-sm text-gray-600">{stat.label}</p>
+                <p className={`text-lg sm:text-2xl font-bold ${stat.textColor} mt-1`}>
+                  <span className="sm:hidden">{stat.label === "Avg Latency" ? `${compactNumber(data.latency_avg_ms)}ms` : stat.label === "Total Calls" ? compactNumber(data.calls_today) : stat.label === "Quota Used" ? `${compactNumber(data.calls_today)}/${quotaTotal}` : stat.value}</span><span className="hidden sm:inline">{stat.value}</span>
                 </p>
               </div>
               <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -137,6 +138,8 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <p className="text-sm font-medium text-gray-700">Daily Quota Usage</p>
           <p className="text-sm text-gray-600" title={isQuotaPending ? "waiting for data" : undefined}>
             {isQuotaPending ? "0% used" : `${quotaPercentage.toFixed(1)}% used`}
+          <p className="text-xs sm:text-sm text-gray-600">
+            {quotaPercentage.toFixed(1)}% used
           </p>
         </div>
         <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -160,7 +163,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Calls by Hour (Today)
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data?.daily_calls || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -192,7 +195,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Method Distribution
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.methods || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -216,7 +219,7 @@ const RpcGraph: React.FC<RpcGraphProps> = ({ rpcData }) => {
           <h4 className="text-sm font-medium text-gray-700 mb-4">
             Latency Distribution
           </h4>
-          <div className="h-64">
+          <div className="min-h-[220px] h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
