@@ -32,6 +32,45 @@ export const getContributors = async () => {
 };
 export type AlertSeverity = "info" | "warn" | "critical";
 
+// ดึงข้อมูล badges
+export const getBadges = async () => {
+  const res = await api.get("/dashboard/badges");
+  return res.data;
+};
+
+// ดึง RPC usage
+export const getRpcUsage = async () => {
+  const res = await api.get("/dashboard/rpc-usage");
+  return res.data;
+};
+
+// ดึง token status
+export const getTokenStatus = async () => {
+  const res = await api.get("/dashboard/token-status");
+  return res.data;
+};
+
+// ดึง logs
+export const getLogs = async () => {
+  const res = await api.get("/dashboard/logs");
+  return res.data;
+};
+
+// ดึง config (admin only)
+export const getConfig = async (token: string) => {
+  const res = await api.get("/dashboard/config", { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};
+
+export const updateConfig = async (updates: Record<string, any>, token: string) => {
+  const res = await api.put("/dashboard/config", { updates }, { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};
+
+export const testConfigConnection = async (token: string) => {
+  const res = await api.post("/dashboard/config/test-connection", {}, { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};
 export interface ActiveAlert {
   id: string;
   metric: string;
