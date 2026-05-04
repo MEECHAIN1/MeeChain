@@ -1,211 +1,96 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { 
-  Settings, 
-  Key, 
-  Shield, 
-  Eye, 
-  EyeOff,
-  Copy,
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  Server,
-  Database,
-  Lock
-} from "lucide-react";
-import { getConfig } from "@/utils/api";
+import { getConfig, testConfigConnection, updateConfig } from "@/utils/api";
 
 export default function ConfigPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState("config");
-  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [token, setToken] = useState("");
+  const [form, setForm] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // In production, use real API
-        // const response = await getConfig();
-        
-        // For demo, use mock data
-        setConfig({
-          environment: "production",
-          version: "1.0.0",
-          last_updated: "2026-03-08T10:30:00Z",
-          settings: {
-            auth0: {
-              domain: "meechain.us.auth0.com",
-              audience: "https://api.meechain.io",
-              client_id: "AUTH0_CLIENT_ID",
-              client_secret: "AUTH0_CLIENT_SECRET",
-            },
-            nodereal: {
-              api_key: "NODEREAL_API_KEY",
-              endpoint: "https://bsc-mainnet.nodereal.io",
-            },
-            database: {
-              url: "postgresql://user:password@localhost:5432/meechain",
-              pool_size: 10,
-            },
-            redis: {
-              url: "redis://localhost:6379",
-              password: "REDIS_PASSWORD",
-            },
-            quotas: {
-              daily_limit: 1000,
-              rate_limit: 60,
-            },
-            security: {
-              jwt_expiry: 3600,
-              cors_origins: ["http://localhost:3000", "https://meechain.io"],
-            },
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching config:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const toggleSecret = (key: string) => {
-    setShowSecrets(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
-  const copyToClipboard = async (text: string, key: string) => {
+  const loadConfig = async () => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopiedKey(key);
-      setTimeout(() => setCopiedKey(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+      const data = await getConfig(token);
+      setForm(data.settings || {});
+    } catch (e: any) {
+      setMessage(e?.response?.data?.detail || "โหลด config ไม่สำเร็จ");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const maskSecret = (secret: string) => {
-    if (!secret) return "••••••••";
-    return "•".repeat(Math.min(secret.length, 12));
+  useEffect(() => {
+    if (!token) return;
+    setLoading(true);
+    void loadConfig();
+  }, [token]);
+
+  const onSave = async () => {
+    setSaving(true);
+    setMessage("");
+    try {
+      await updateConfig(form, token);
+      setMessage("บันทึกค่าเรียบร้อย");
+    } catch (e: any) {
+      setMessage(e?.response?.data?.detail || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const configSections = [
-    {
-      title: "Authentication",
-      icon: <Shield className="text-blue-600" size={20} />,
-      color: "bg-blue-50",
-      items: [
-        { key: "auth0_domain", label: "Auth0 Domain", value: config?.settings?.auth0?.domain, type: "text" },
-        { key: "auth0_audience", label: "Auth0 Audience", value: config?.settings?.auth0?.audience, type: "text" },
-        { key: "auth0_client_id", label: "Auth0 Client ID", value: config?.settings?.auth0?.client_id, type: "secret" },
-        { key: "auth0_client_secret", label: "Auth0 Client Secret", value: config?.settings?.auth0?.client_secret, type: "secret" },
-      ],
-    },
-    {
-      title: "RPC Provider",
-      icon: <Server className="text-green-600" size={20} />,
-      color: "bg-green-50",
-      items: [
-        { key: "nodereal_endpoint", label: "NodeReal Endpoint", value: config?.settings?.nodereal?.endpoint, type: "text" },
-        { key: "nodereal_api_key", label: "NodeReal API Key", value: config?.settings?.nodereal?.api_key, type: "secret" },
-      ],
-    },
-    {
-      title: "Database",
-      icon: <Database className="text-purple-600" size={20} />,
-      color: "bg-purple-50",
-      items: [
-        { key: "database_url", label: "Database URL", value: config?.settings?.database?.url, type: "secret" },
-        { key: "database_pool_size", label: "Connection Pool Size", value: config?.settings?.database?.pool_size, type: "text" },
-      ],
-    },
-    {
-      title: "Cache",
-      icon: <RefreshCw className="text-yellow-600" size={20} />,
-      color: "bg-yellow-50",
-      items: [
-        { key: "redis_url", label: "Redis URL", value: config?.settings?.redis?.url, type: "text" },
-        { key: "redis_password", label: "Redis Password", value: config?.settings?.redis?.password, type: "secret" },
-      ],
-    },
-    {
-      title: "Quotas & Limits",
-      icon: <Lock className="text-red-600" size={20} />,
-      color: "bg-red-50",
-      items: [
-        { key: "daily_limit", label: "Daily RPC Limit", value: config?.settings?.quotas?.daily_limit, type: "text" },
-        { key: "rate_limit", label: "Rate Limit (per minute)", value: config?.settings?.quotas?.rate_limit, type: "text" },
-        { key: "jwt_expiry", label: "JWT Expiry (seconds)", value: config?.settings?.security?.jwt_expiry, type: "text" },
-      ],
-    },
-  ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading Configuration...</p>
-        </div>
-      </div>
-    );
-  }
+  const onTestConnection = async () => {
+    setMessage("");
+    try {
+      const result = await testConfigConnection(token);
+      setMessage(result.ok ? "RPC health check ผ่าน" : "RPC health check ไม่ผ่าน");
+    } catch (e: any) {
+      setMessage(e?.response?.data?.detail || "ทดสอบการเชื่อมต่อไม่สำเร็จ");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      
       <div className="flex">
-        <Sidebar 
-          isOpen={sidebarOpen} 
-          activePage={activePage}
-          setActivePage={setActivePage}
-        />
-        
-        {/* Overlay for mobile sidebar */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
-        
-        <main className="flex-1 p-4 lg:p-6">
-          {/* Page Header */}
-          <div className="mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Configuration</h1>
-                <p className="text-gray-600">Manage backend settings and secrets</p>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-gray-600">Environment:</span>
-                    <span className="font-medium text-gray-900 capitalize">{config?.environment}</span>
-                  </div>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-600">Version: {config?.version}</span>
+        <Sidebar isOpen={sidebarOpen} activePage={activePage} setActivePage={setActivePage} />
+        <main className="flex-1 p-6">
+          <h1 className="text-2xl font-bold mb-4">Config Management</h1>
+          <input className="border p-2 rounded w-full mb-4" placeholder="Admin Bearer Token" value={token} onChange={(e) => setToken(e.target.value)} />
+
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <div className="bg-white rounded border p-4 space-y-3">
+              {Object.keys(form).map((key) => (
+                <div key={key}>
+                  <label className="block text-sm text-gray-600 mb-1">{key}</label>
+                  <input
+                    className="w-full border rounded p-2"
+                    value={Array.isArray(form[key]) ? form[key].join(",") : String(form[key] ?? "")}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [key]: typeof prev[key] === "number" ? Number(e.target.value) : Array.isArray(prev[key]) ? e.target.value.split(",").map((v) => v.trim()) : e.target.value,
+                      }))
+                    }
+                  />
                 </div>
-                
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                  <RefreshCw size={16} />
-                  <span>Rotate Keys</span>
+              ))}
+              <div className="flex gap-2">
+                <button onClick={onSave} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded">
+                  {saving ? "Saving..." : "Save Config"}
                 </button>
+                <button onClick={onTestConnection} className="px-4 py-2 bg-green-600 text-white rounded">Test Connection</button>
               </div>
+              {message && <p className="text-sm text-gray-700">{message}</p>}
             </div>
+          )}
           </div>
           
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
