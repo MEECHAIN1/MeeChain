@@ -19,7 +19,7 @@ from config import Settings, get_settings
 from dashboard.routes import router as dashboard_router
 from logger import activity_logger
 from models import HealthResponse, RPCRequest
-from rpc import proxy_rpc
+from rpc import get_upstream_health_summary, proxy_rpc
 
 APP_VERSION = "1.0.0"
 
@@ -93,6 +93,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def health(s: Settings = Depends(get_settings)):
         return HealthResponse(status="ok", version=APP_VERSION, auth0_domain=s.auth0_domain, rpc_url=s.nodereal_rpc_url)
 
+        upstream = get_upstream_health_summary(s)
+        return HealthResponse(
+            status=upstream["status"],
+            version=APP_VERSION,
+            auth0_domain=s.auth0_domain,
+            rpc_url=s.nodereal_rpc_url,
+            provider_mode=s.provider_mode,
+            upstream=upstream,
+        )
+
+    # ── Identity ──────────────────────────────────────────────────────────────
     @app.get("/me", tags=["Auth"], summary="Get identity from JWT")
     async def me(payload: dict = Depends(get_current_user)):
         user_id: str = payload["sub"]

@@ -80,8 +80,19 @@ class LogEntry(BaseModel):
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
+
+class UpstreamHealthSummary(BaseModel):
+    status: str
+    active_provider: str
+    failover_count: int
+    last_switch_time: Optional[str] = None
+    endpoints: list[dict[str, str | int | None]] = []
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
     auth0_domain: str
     rpc_url: str
+    provider_mode: str
+    upstream: UpstreamHealthSummary

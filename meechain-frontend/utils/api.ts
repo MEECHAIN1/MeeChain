@@ -1,17 +1,36 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000", // หรือ URL ของ FastAPI backend ที่ deploy แล้ว
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: "http://localhost:8000",
+  headers: { "Content-Type": "application/json" },
 });
+
+export interface RpcUsageResponse {
+  calls_today: number | string | null;
+  errors: number | string | null;
+  latency_avg_ms: number | string | null;
+  quota?: string | null;
+  quota_used?: number | string | null;
+  quota_limit?: number | string | null;
+  daily_calls?: Array<{ hour: string; calls: number | string | null }>;
+  methods?: Array<{ method: string; count: number | string | null }>;
+  latency_distribution?: Array<{ range: string; count: number | string | null; color: string }>;
+}
+
+export interface TokenStatusResponse {
+  status: "VALID" | "EXPIRED" | "INVALID" | string;
+  user: string;
+  audience: string;
+  scope: string;
+  expires_in?: number | string | null;
+}
 
 // ดึงข้อมูล contributors
 export const getContributors = async () => {
   const res = await api.get("/dashboard/contributors");
   return res.data;
 };
+export type AlertSeverity = "info" | "warn" | "critical";
 
 // ดึงข้อมูล badges
 export const getBadges = async () => {
@@ -52,39 +71,28 @@ export const testConfigConnection = async (token: string) => {
   const res = await api.post("/dashboard/config/test-connection", {}, { headers: { Authorization: `Bearer ${token}` } });
   return res.data;
 };
+export interface ActiveAlert {
+  id: string;
+  metric: string;
+  message: string;
+  severity: AlertSeverity;
+  status: string;
+  created_at: string;
+  snoozed_until?: string;
+}
 
-// ดึง health status
-export const getHealth = async () => {
-  const res = await api.get("/health");
+export const getActiveAlerts = async () => {
+  const res = await api.get("/dashboard/active-alerts");
+  return res.data.alerts as ActiveAlert[];
+};
+
+export const ackAlert = async (alertId: string) => {
+  const res = await api.post(`/dashboard/admin/alerts/${alertId}/ack`);
   return res.data;
 };
 
-// ดึง identity (JWT)
-export const getIdentity = async (token: string) => {
-  const res = await api.get("/me", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.data;
-};
-
-// ส่ง RPC call
-export const postRpcCall = async (method: string, params: any[], token: string) => {
-  const res = await api.post(
-    "/rpc",
-    {
-      jsonrpc: "2.0",
-      method,
-      params,
-      id: 1,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+export const snoozeAlert = async (alertId: string, minutes = 30) => {
+  const res = await api.post(`/dashboard/admin/alerts/${alertId}/snooze?minutes=${minutes}`);
   return res.data;
 };
 
