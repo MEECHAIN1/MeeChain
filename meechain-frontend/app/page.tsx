@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import TokenStatus from "@/components/TokenStatus";
@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
+import { fetchWithRetry, getRpcUsage, getTokenStatus, getContributors, getLogs } from "@/utils/api";
 import { getRpcUsage, getTokenStatus, getContributors, getHealth } from "@/utils/api";
 import { getRpcUsage, getTokenStatus, getContributors } from "@/utils/api";
 import { RpcUsageResponse, TokenStatusResponse } from "@/utils/api";
@@ -30,14 +31,41 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
   const [tokenData, setTokenData] = useState<any>(null);
   const [contributors, setContributors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [stale, setStale] = useState(false);
+
+  const pollIntervalMs = 15000;
   const [systemStatus, setSystemStatus] = useState<"healthy" | "degraded" | "down">("healthy");
   const [alerts, setAlerts] = useState<ActiveAlert[]>([]);
 
   const compactNumber = (value: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 
   useEffect(() => {
+    let isMounted = true;
+    let pollingId: NodeJS.Timeout;
+    let staleId: NodeJS.Timeout;
+    let debounceId: NodeJS.Timeout;
+
     const fetchData = async () => {
       try {
+        const [rpcResponse, tokenResponse, contributorsResponse] = await Promise.all([
+          fetchWithRetry(() => getRpcUsage()),
+          fetchWithRetry(() => getTokenStatus()),
+          fetchWithRetry(() => getContributors()),
+        ]);
+        await fetchWithRetry(() => getLogs());
+
+        if (!isMounted) return;
+        setRpcData(rpcResponse);
+        setTokenData(tokenResponse);
+        setContributors(Array.isArray(contributorsResponse) ? contributorsResponse : []);
+        setLastUpdated(new Date());
+        setStale(false);
+        setError(null);
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
         // In production, use real API
         // const rpcResponse = await getRpcUsage();
         // const tokenResponse = await getTokenStatus();
@@ -74,12 +102,35 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
         const alertData = await getActiveAlerts().catch(() => []);
         setAlerts(alertData);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    pollingId = setInterval(() => {
+      clearTimeout(debounceId);
+      debounceId = setTimeout(fetchData, 350);
+    }, pollIntervalMs);
+
+    staleId = setInterval(() => {
+      if (!isMounted || !lastUpdated) return;
+      setStale(Date.now() - lastUpdated.getTime() > pollIntervalMs * 2);
+    }, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollingId);
+      clearInterval(staleId);
+      clearTimeout(debounceId);
+    };
+  }, [lastUpdated]);
+
+  const statusLabel = useMemo(() => {
+    if (loading) return "Loading";
+    if (error) return "Error";
+    if (stale) return "Stale";
+    return "Live";
+  }, [loading, error, stale]);
 
   const stats = [
     { label: "Active Contributors", value: 24, change: "+3 this week", icon: <Users className="text-blue-600" size={20} />, color: "bg-blue-50" },
@@ -141,6 +192,11 @@ xxx  const [rpcData, setRpcData] = useState<RpcUsageResponse | null>(null);
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
             <p className="text-gray-600">Welcome to MeeChain Backend Dashboard</p>
+            <div className="mt-2 text-sm text-gray-500">
+              Status: <span className={error ? "text-red-600" : stale ? "text-yellow-600" : "text-green-600"}>{statusLabel}</span>
+              {lastUpdated && <span className="ml-3">Last updated: {lastUpdated.toLocaleTimeString()}</span>}
+              {error && <span className="ml-3 text-red-600">{error}</span>}
+            </div>
         <Sidebar isOpen={sidebarOpen} activePage={activePage} setActivePage={setActivePage} />
         {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
 
